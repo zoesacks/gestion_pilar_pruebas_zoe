@@ -1,0 +1,80 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block title %}
+<a href="/" style="color: aliceblue;">INICIO</a> > <a href="/ingresos/aplicaciones/" style="color: aliceblue;">INGRESOS</a>
+{% endblock %}
+{% block content %}
+<div class="container ">
+    <section class="page-section portfolio" id="portfolio">
+        <div class="row justify-content-center">
+            <!-- APP - 1 : Solicitud de pedidos -->
+            <div class="col-md-6 col-lg-4 mb-5">
+                <a href="/ingresos/calculadora/">
+                    <div class="portfolio-item mx-auto">
+                        <div class="portfolio-item-caption d-flex align-items-center justify-content-center h-100 w-100">
+                            <div class="portfolio-item-caption-content text-center text-white"><i class="fas fa-plus fa-3x"></i></div>
+                        </div>
+                        <img class="img-fluid" src="{% static 'assets/img/portfolio/calculadora_tasas.png' %}" alt="..." />
+                    </div>
+                </a>
+            </div>
+            <!-- APP - 2 : Redetermincaciones -->
+            <div class="col-md-6 col-lg-4 mb-5">
+                <a href="/ingresos/serivicios_generales/">
+                    <div class="portfolio-item mx-auto" data-bs-toggle="modal" data-bs-target="#portfolioModal2">
+                        <div class="portfolio-item-caption d-flex align-items-center justify-content-center h-100 w-100">
+                            <div class="portfolio-item-caption-content text-center text-white"><i class="fas fa-plus fa-3x"></i></div>
+                        </div>
+                        <img class="img-fluid" src="{% static 'assets/img/portfolio/servicios_generales.png' %}" alt="..." />
+                    </div>
+                </a>
+            </div>
+            <!-- APP - 3 : Calculadora de Tasas-->
+            <div class="col-md-6 col-lg-4 mb-5">
+                <a href="/">
+                    <div class="portfolio-item mx-auto" data-bs-toggle="modal" data-bs-target="#portfolioModal1">
+                        <div class="portfolio-item-caption d-flex align-items-center justify-content-center h-100 w-100">
+                            <div class="portfolio-item-caption-content text-center text-white"><i class="fas fa-plus fa-3x"></i></div>
+                        </div>
+                        <img class="img-fluid" src="{% static 'assets/img/portfolio/informes.png' %}" alt="..." />
+                    </div>
+                </a>
+            </div>
+            <!-- APP - 4 : Informes -->
+            <div class="col-md-6 col-lg-4 mb-5">
+                <a href="/">    
+                    <div class="portfolio-item mx-auto" data-bs-toggle="modal" data-bs-target="#portfolioModal2">
+                        <div class="portfolio-item-caption d-flex align-items-center justify-content-center h-100 w-100">
+                            <div class="portfolio-item-caption-content text-center text-white"><i class="fas fa-plus fa-3x"></i></div>
+                        </div>
+                        <img class="img-fluid" src="{% static 'assets/img/portfolio/app_disponible.png' %}" alt="..." />
+                    </div>
+                </a>
+            </div>                
+            <!-- APP - 5 : Registros -->
+            <div class="col-md-6 col-lg-4 mb-5">
+                <a href="/">
+                    <div class="portfolio-item mx-auto" data-bs-toggle="modal" data-bs-target="#portfolioModal1">
+                        <div class="portfolio-item-caption d-flex align-items-center justify-content-center h-100 w-100">
+                            <div class="portfolio-item-caption-content text-center text-white"><i class="fas fa-plus fa-3x"></i></div>
+                        </div>
+                        <img class="img-fluid" src="{% static 'assets/img/portfolio/app_disponible.png' %}" alt="..." />
+                    </div>
+                </a>
+            </div>
+            <!-- APP - 6 : Mesa de ayuda-->
+            <div class="col-md-6 col-lg-4 mb-5">
+                <a href="/">
+                    <div class="portfolio-item mx-auto" data-bs-toggle="modal" data-bs-target="#portfolioModal2">
+                        <div class="portfolio-item-caption d-flex align-items-center justify-content-center h-100 w-100">
+                            <div class="portfolio-item-caption-content text-center text-white"><i class="fas fa-plus fa-3x"></i></div>
+                        </div>
+                        <img class="img-fluid" src="{% static 'assets/img/portfolio/app_disponible.png' %}" alt="..." />
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+</div>
+
+{% endblock %}

@@ -1,0 +1,192 @@
+    {% extends 'index.html' %}
+    {% load humanize %}
+    {% load static %}
+    {% block title %}
+    <a href="/solicitud/solicitudes/" style="color: aliceblue;text-decoration: none;" >⬅️⬅️⬅️ Volver a las solicitudes </a>
+    {% endblock %}
+    {% block content %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Modal para mostrar detalles de la solicitud -->
+    <div class="modal fade" id="solicitudModal" tabindex="-1" role="dialog" aria-labelledby="solicitudModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 style="color: #5454E6;" id="solicitudModalLabel">
+                        <img class="logo img" src="{% static 'assets/logo.png' %}" alt="" style="height: 50px;width: 50px;">
+                        &nbsp;&nbsp; Generar observacion sobre solicitud</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+         
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="observacionModal" tabindex="-1" role="dialog" aria-labelledby="observacionModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 style="color: #5454E6;" id="solicitudModalLabel">
+                    <img class="logo img" src="{% static 'assets/logo.png' %}" alt="" style="height: 50px;width: 50px;">
+                    &nbsp;&nbsp; Generar observacion</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" >
+                <form method="post" action="{% url 'solicitudes' %}">
+                    {% csrf_token %}
+                        <input type="hidden" name="solicitud_id_observacion" value="{{ solicitud.id }}">
+                        <div class="form-group" style="margin-top: 10px;">
+                            <label for="observacion">Ingrese el comentario sobre la solicitud:</label>
+                            <textarea class="form-control" id="observacion" name="observacion" rows="4"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary"> Generar Observación</button>
+                </form>
+            </div>
+        </div>
+        </div>
+    </div>
+    
+
+    <div class="container mt-4" style="min-height: 70vh;">
+        <div class="card" >
+            <div class="card-body" >
+
+                <div class="section"> 
+
+                    <div class="row p-3">
+                        
+                        <div class="col-8">
+                            <p><b class="text-primary text-uppercase">Estado:&nbsp;</b>
+                                {% if solicitud.ESTADO == False %}
+                                <td style="width: 130px;">
+                                    {% if solicitud.OBSERVADA == False %}
+                                    🔴Pendiente
+                                    {% else %}
+                                    🟠Observada
+                                    {% endif %}
+                                </td> 
+                                {% else %}
+                                <td style="width: 130px;">
+                                    🟢Aprobada
+                                </td>
+                                {% endif %}
+                            </p>
+                            <p><b class="text-primary text-uppercase">Numero de solicitud :&nbsp;&nbsp;</b>{{ solicitud.id }}</p>
+                            <p><b class="text-primary text-uppercase">Fecha de creación :&nbsp;&nbsp;</b>{{ solicitud.FECHA }}</p>
+                            <p><b class="text-primary text-uppercase">Codigo interno :&nbsp;&nbsp;</b>{{ solicitud.CODIGO }}</p>
+                            <p><b class="text-primary text-uppercase">Detalles :&nbsp;&nbsp;</b>{{ solicitud.DETALLE }}</p>
+                            <p class="text-primary text-uppercase pt-3"><b>Observaciones:</b> </p>
+                                    
+                            {% if solicitud.COMENTARIOS == None %}
+                                <p>Sin comentarios</p>
+                            {% else %}
+                                <p>{{ solicitud.COMENTARIOS }}  </p>
+                            {% endif %}
+                        </div>  
+                        <div class="col-4">
+                            <div class="row text-center">
+                                <div class="card border-primary" >
+                                    <div class="card-body">
+                                        <h5 class="text-primary text-uppercase pt-3"><b>Importe Solicitado</b></h5>
+                                        <h3 class="pt-3"><b style="color: #f20707;">$ {{ solicitud.TOTAL_SOLICITUD|floatformat:2|intcomma }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row text-center mt-3">
+                                <div class="container text-center card" style="border: white;">
+                                    <div class="row" style="padding: 1vh;">
+                                    
+                                        {% if solicitud.ESTADO == False %}
+                                            {% if solicitud.OBSERVADA == False %}
+                                                <div class="col-6">
+                                                    
+                                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#observacionModal">
+                                                        <img class="logo" src="{% static 'assets/iconos/ver.png' %}" alt="" style="max-height: 60px;">
+                                                        <p class="text-uppercase text-center">Agregar Observación</p>
+                                                    </button>
+                                                </div>
+                                            {% endif %}
+                                            <div class="col-6">
+                                                <form method="post" action="{% url 'solicitudes' %}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="solicitud_id" value="{{ solicitud.id }}">
+                                                    <button type="submit" class="btn btn-success">
+                                                        <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 60px;"> 
+                                                        <p class="text-uppercase text-center">Aprobar solicitud</p>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        {% else %}
+                                            <div class="row">
+                                                <p class="text-uppercase"><b class="text-primary text-uppercase">Aprobado por :&nbsp;&nbsp;</b>{{ solicitud.AUTORIZADO_POR }}</p>
+                                                <p class="text-uppercase"><b class="text-primary text-uppercase">Fecha de aprobación :&nbsp;&nbsp;</b>{{ solicitud.FECHA_AUTORIZADO }}</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="row p-3">
+                        <div class="col-12">
+                            <div class="table-responsive" style="border-radius: 5px;">
+                                <table class="table table-responsive">
+                                    <thead>
+                                        <tr style="background-color: rgb(59, 78, 247);color: aliceblue;">
+                                            <th class="text-uppercase">Articulo</th>
+                                            <th class="text-uppercase">Objeto</th>
+                                            <th class="text-uppercase">Cantidad</th>
+                                            <th class="text-uppercase">Precio</th>
+                                            <th class="text-uppercase">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for articulo in articulos %}
+                                        {% if articulo.pedido.pk == solicitud.pk %}
+                                            <tr>
+                                                <td>{{ articulo.articulo }}</td>
+                                                <td>{{ articulo.objeto }}</td>
+                                                <td>{{ articulo.cantidad }}</td>
+                                                <td>{{ articulo.precio_unitario|floatformat:2|intcomma }}</td>
+                                                <td>{{ articulo.total|floatformat:2|intcomma }}</td>
+                                            </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                
+                            </div>
+                        </div>
+                    </div>   
+                </div>
+                
+            </div>
+        </div>
+        <div class="row" style="height: 30px;"></div>
+    </div>
+    <script>
+        // Inicializa el modal cuando el documento esté listo
+        $(document).ready(function() {
+          $('#observacionModal').modal({
+            backdrop: 'static', // Evita que se cierre haciendo clic fuera del modal
+            keyboard: false // Evita que se cierre con la tecla Esc
+          });
+        });
+    </script>
+    {% endblock %}

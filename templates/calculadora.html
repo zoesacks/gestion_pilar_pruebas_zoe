@@ -1,0 +1,283 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% load static %}
+{% block title %}
+<a href="/" style="color: aliceblue;">INICIO</a> > <a href="/ingresos/aplicaciones/" style="color: aliceblue;">INGRESOS</a> > <a href="/ingresos/calculadora/" style="color: aliceblue;"> Calculadora de tasas municipales</a> 
+{% endblock %}
+{% block content %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="container mt-4">
+    <div class="card" >
+        <div class="card-body" >
+
+            <div class="row">
+                <!-- total pagado -->
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="card shadow h-100 py-2" style="background-color: rgba(1, 37, 242, 0.729);border-left: 4px solid rgba(1, 10, 185, 0.9);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xl font-weight-bold text-primary text-uppercase mb-1">
+                                        <b style="color: aliceblue;">IMPUESTO REAL</b></div>
+                                    <div class="h4 mb-0 font-weight-bold" style="color: #ffffff;">{{ total_impuesto_real|floatformat:2|intcomma }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt="" style="height: 60px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- total pagado -->
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="card shadow h-100 py-2" style="background-color: rgba(244, 6, 6, 0.2);border-left: 4px solid rgba(253, 0, 0, 0.9);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xl font-weight-bold text-danger text-uppercase mb-1">
+                                        <b>IMPUESTO PROYECTADO</b></div>
+                                    <div class="h4 mb-0 font-weight-bold text-gray-800" style="color: #f20707;">{{ total_impuesto_proyectado|floatformat:2|intcomma }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt="" style="height: 60px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="card shadow h-100 py-2" style="background-color: rgba(245, 186, 57, 0.5);border-left: 4px solid rgba(237, 146, 0, 0.9);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xl font-weight-boldtext-uppercase mb-1" style="color: rgb(252, 117, 0);">
+                                        <b>DIFERENCIA</b></div>
+                                    <div class="h4 mb-0 font-weight-bold text-gray-800" style="color: #e96100;">{{ diferencia|floatformat:2|intcomma }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt="" style="height: 60px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row p-3">
+                <div class="col-8">
+                    <div class="card shadow p-0" style="border-color: #5454E6;">
+                        <div class="card-header" style="background-color: #5454E6;color: aliceblue;">
+                            <h5>Totales por alicuota</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-area" style="height: 300px;">
+                                <canvas id="GRAFICO"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card shadow p-0" style="border-color: #5454E6;">
+                        <div class="card-header" style="background-color: #5454E6;color: aliceblue;">
+                            <h5>Impacto</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-area" style="height: 300px;">
+                                <canvas id="GRAFICO_TORTA"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row p-3">
+
+                <div class="col-12">
+                    <div class="card shadow p-0" style="border-color: #5454E6;">
+                        <div class="card-header" style="background-color: #5454E6;color: aliceblue;">
+                            <h5>Totales por alicuota</h5>
+                        </div>
+                        <div class="card-body">
+
+                            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0" style="border-radius: 15px;">
+                                <thead style="border-radius: 10px;">
+                                    <tr style="background-color: #5454E6;color: aliceblue;">
+                                        <th>Alic</th>
+                                        <th>Total</th>
+                                        <th>Proyectado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tupla in datos_grafico %}
+                                    <tr>
+                                        <td>{{ tupla.0 }}</td>
+                                        <td>${{ tupla.1|floatformat:0|intcomma }}</td>
+                                        <td>${{ tupla.2|floatformat:0|intcomma }}</td>
+                                    </tr>   
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>  
+                </div>
+            </div>
+            <div class="row p-3">
+                <div class="col-12">
+                    <div class="table-responsive" style="border-radius: 5px;">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0" style="border-radius: 15px;border-color: #5454E6;">
+                            <thead>
+                                <tr style="background-color: #5454E6;color: aliceblue;">
+                                    <th>Cuenta</th>
+                                    <th>Titular</th>
+                                    <th>Alicuota real</th>
+                                    <th>Total real</th>
+                                    <th>Alicuota proyectada</th>
+                                    <th>Total proyectado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cuenta in page  %}
+                                <tr >
+                                    <td>📅{{ cuenta.CUENTA }}</td>
+                                    <td>{{ cuenta.TITULAR }}</td>
+                                    <td>% {{ cuenta.alicuota_utilizada}}</td>
+                                    <td>💵{{ cuenta.impuesto|floatformat:2|intcomma }}</td>
+                                    <td>% {{ cuenta.alicuota_proyectada}}</td>
+                                    <td>💵{{ cuenta.impuesto_proyectado|floatformat:2|intcomma }}</td>
+                                </tr>   
+                                {% endfor %}
+                            </tbody>
+                            
+                            
+                        </table>
+                        
+                        <div class="pagination justify-content-center">
+                            {% if page.has_previous %}
+                            <a href="?page=1" class="btn btn-primary" style="margin: 5px;padding: 1;">Primera</a>
+                            <a href="?page={{ page.previous_page_number }}" class="btn btn-primary" style="margin: 5px;padding: 1;">Anterior</a>
+                            {% endif %}
+                        
+                            <span class="current">
+                                <b>Página {{ page.number }} de {{ page.paginator.num_pages }}</b>
+                            </span>
+                        
+                            {% if page.has_next %}
+                            <a href="?page={{ page.next_page_number }}" class="btn btn-primary" style="margin: 5px;padding: 1;">Siguiente</a>
+                            <a href="?page={{ page.paginator.num_pages }}" class="btn btn-primary" style="margin: 5px;padding: 1;">Última</a>
+                            {% endif %}
+                        </div>
+                
+                    
+                    </div>
+                </div>
+            </div>
+        </div>  
+    </div>
+</div>
+
+<div class="" style="height: 30px;"></div>
+
+
+<script>
+
+// ------------- creacion de grafico de barras --------------
+
+// Configuración del gráfico
+const datos = {
+    labels: {{ alicuotas|safe }},
+    datasets: [{
+        label: "Impuesto real",
+        data:  {{ totales_por_alicuota|safe }}, 
+        backgroundColor:'rgba(15, 99, 232,1)',
+        borderColor: 'rgba(15, 99, 232, 0.2)',
+        borderWidth: 1
+    },
+    {
+        label: "Impuesto proyectado",
+        data:  {{ totales_por_alicuota_proyectada|safe }}, 
+
+        backgroundColor: 'rgba(255, 99, 132, 1)',
+        borderColor: 'rgba(255, 99, 132, 0.2)',
+        borderWidth: 1
+    }
+]
+};
+
+// Configuración del gráfico
+const opciones = {
+        scales: {
+            y: {
+                beginAtZero: false,
+            }
+        },
+        
+        responsive: true, // Esto permite que el gráfico sea redimensionable
+        maintainAspectRatio: false, // Esto evita que el aspect ratio se mantenga
+
+        // Puedes especificar el ancho y el alto del lienzo según tus necesidades
+        width: 100,
+        height: 100
+    
+    
+    };
+
+
+// Obtén el contexto del lienzo (canvas)
+const ctx = document.getElementById('GRAFICO').getContext('2d');
+
+// Crea el gráfico de barras
+const grafico = new Chart(ctx, {
+    type: 'bar',
+    data: datos,
+    options: {
+            responsive: true, // Esto permite que el gráfico sea redimensionable
+            maintainAspectRatio: false, // Esto evita que el aspect ratio se mantenga
+
+        }
+});
+
+// ------------- creacion de grafico de barras --------------
+
+// Configuración del gráfico
+const datos_torta = {
+    labels: ["IMP. REAL","IMPACTO"],
+    datasets: [{
+        label: "Impuesto real",
+        data:  [{{ total_impuesto_real|floatformat:0 }},{{ diferencia|floatformat:0 }}], 
+        backgroundColor:['rgba(15, 99, 232, 0.2)', 'rgba(255, 99, 132, 1)',],
+        borderColor: 'rgba(15, 99, 232, 0.2)',
+        borderWidth: 1
+    }
+]
+};
+
+// Configuración del gráfico
+const opciones_torta = {
+        scales: {
+            y: {
+                beginAtZero: true,
+            }
+        },
+    };
+
+
+// Obtén el contexto del lienzo (canvas)
+const ctx_torta = document.getElementById('GRAFICO_TORTA').getContext('2d');
+
+// Crea el gráfico de barras
+const grafico_torta = new Chart(ctx_torta, {
+    type: 'pie',
+    data: datos_torta,
+    options: opciones_torta
+});
+
+
+
+
+
+
+
+</script>
+{% endblock %}

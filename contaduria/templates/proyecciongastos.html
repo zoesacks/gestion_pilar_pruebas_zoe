@@ -1,0 +1,184 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% load static %}
+{% block title %}
+<a href="/" style="color: aliceblue;">INICIO</a> > <a href="/contaduria/aplicaciones/" style="color: aliceblue;">CONTADURIA</a>  > <a href="/contaduria/gastos/" style="color: aliceblue;">gastos</a> > <a href="/contaduria/gastos/proyecciongasto" style="color: aliceblue;">proyeccion de gastos</a>
+{% endblock %}
+{% block content %}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<div class="container mt-4"  style="min-height: 70vh;">
+    <div class="card" >
+        <div class="card-body" >
+
+            <div class="row">
+                <!-- total pagado -->
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="card shadow h-100 py-2" style="background-color: rgba(1, 37, 242, 0.729);border-left: 4px solid rgba(1, 10, 185, 0.9);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xl font-weight-bold text-primary text-uppercase mb-1">
+                                        <b style="color: aliceblue;">GASTOS ACTUALES</b></div>
+                                    <div class="h4 mb-0 font-weight-bold" style="color: #ffffff;">{{ total_solicitudes }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt="" style="height: 60px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- total pagado -->
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="card shadow h-100 py-2" style="background-color: rgba(244, 6, 6, 0.2);border-left: 4px solid rgba(253, 0, 0, 0.9);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xl font-weight-bold text-danger text-uppercase mb-1">
+                                        <b>GASTOS PROYECTADOS</b></div>
+                                    <div class="h4 mb-0 font-weight-bold text-gray-800" style="color: #f20707;">{{ solicitudes_pendientes }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt="" style="height: 60px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="card shadow h-100 py-2" style="background-color: rgba(245, 186, 57, 0.5);border-left: 4px solid rgba(237, 146, 0, 0.9);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xl font-weight-bold text-uppercase mb-1" style="color: #755101;">
+                                        <b>PENDIENTE DE EJECUCION</b></div>
+                                    <div class="h4 mb-0 font-weight-bold text-gray-800" style="color: #452f01;">{{ solicitudes_pendientes }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt="" style="height: 60px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="table-responsive" style="border-radius: 2px;">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0" style="border-radius: 15px;border-color: #5454E6;">
+                            <thead>
+                                <tr style="background-color: #5454E6;color: aliceblue;">
+                                    <th>Fecha</th>
+                                    <th>Solped #</th>
+                                    <th>Detalle</th>
+                                    <th>Improte</th>
+                                    <th class="text-center">Estado</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for solicitud in solicitudes  %}
+                                <tr >
+                                    <td>📅{{ solicitud.FECHA }}</td>
+                                    <td>{{ solicitud.CODIGO }}</td>
+                                    <td>{{ solicitud.DETALLE|lower|capfirst|slice:"100"  }} ...</td>
+                                    <td>💵{{ solicitud.TOTAL_SOLICITUD|floatformat:2|intcomma }}</td>
+                                    {% if solicitud.ESTADO == False %}
+                                    <td>
+                                        {% if solicitud.OBSERVADA == False %}
+                                        🔴Pendiente
+                                        {% else %}
+                                        🟠Observada
+                                        {% endif %}
+                                    </td> 
+                                    {% else %}
+                                    <td>
+                                        🟢Aprobada
+                                    </td>
+                                    {% endif %}
+                                    <td>
+                                        <button class="btn btn-primary" data-toggle="modal" data-target="#solicitudModal"
+                                                data-target="#verSolicitudModal"
+                                                data-solicitud-id="{{ solicitud.id }}"
+                                                data-fecha="{{ solicitud.FECHA }}"
+                                                data-codigo="{{ solicitud.CODIGO }}"
+                                                data-detalle="{{ solicitud.DETALLE }}"
+
+                                                data-importe="{{ solicitud.TOTAL_SOLICITUD|floatformat:2|intcomma }}"
+                                                data-estado="{% if solicitud.ESTADO == False %}{% if solicitud.OBSERVADA == False %}Pendiente{% else %}Observada{% endif %}{% else %}Aprobada{% endif %}">
+
+                                                <img class="logo" src="{% static 'assets/iconos/ver.png' %}" alt="" style="max-height: 30px;">
+                                        </button>
+                                    </td>
+                                </tr>   
+                                {% endfor %}
+                            </tbody>
+                            
+                            
+                        </table>
+                        
+                        <div class="pagination justify-content-center">
+                            {% if page.has_previous %}
+                            <a href="?page=1" class="btn btn-primary" style="margin: 5px;padding: 1;">Primera</a>
+                            <a href="?page={{ page.previous_page_number }}" class="btn btn-primary" style="margin: 5px;padding: 1;">Anterior</a>
+                            {% endif %}
+                        
+                            <span class="current">
+                                <b>Página {{ page.number }} de {{ page.paginator.num_pages }}</b>
+                            </span>
+                        
+                            {% if page.has_next %}
+                            <a href="?page={{ page.next_page_number }}" class="btn btn-primary" style="margin: 5px;padding: 1;">Siguiente</a>
+                            <a href="?page={{ page.paginator.num_pages }}" class="btn btn-primary" style="margin: 5px;padding: 1;">Última</a>
+                            {% endif %}
+                        </div>
+                
+                    
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="" style="height: 30px;"></div>
+<script>
+    $('#solicitudModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var modal = $(this);
+
+        // Obtén el ID de la solicitud desde el botón
+        var solicitudId = button.data('solicitud-id');
+
+        // Actualiza los elementos en el modal con los datos de la solicitud
+        modal.find('#solicitudId').text(solicitudId);
+        modal.find('#solicitudFecha').text(button.data('fecha'));
+        modal.find('#solicitudCodigo').text(button.data('codigo'));
+        modal.find('#solicitudDetalle').text(button.data('detalle'));
+        modal.find('#solicitudImporte').text(button.data('importe'));
+        modal.find('#solicitudEstado').text(button.data('estado'));
+
+        // Filtra los artículos relacionados con la solicitud y actualiza la tabla en el modal
+        var tablaArticulos = modal.find('#tablaArticulos'); // Agrega un ID a la tabla
+        tablaArticulos.empty(); // Limpia la tabla
+
+        {% for articulo in articulos %}
+            {% if articulo.pedido.id == solicitudId %}
+                // Crea una nueva fila en la tabla para cada artículo relacionado
+                var fila = $('<tr>');
+                fila.append('<td>{{ articulo.articulo }}</td>');
+                fila.append('<td>{{ articulo.objeto }}</td>');
+                fila.append('<td>{{ articulo.cantidad }}</td>');
+                fila.append('<td>${{ articulo.precio_unitario|floatformat:2|intcomma }}</td>');
+                fila.append('<td>${{ articulo.total|floatformat:2|intcomma }}</td>');
+                tablaArticulos.append(fila);
+            {% endif %}
+        {% endfor %}
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,864 @@
+    {% extends 'index.html' %}
+    {% load humanize %}
+    {% load static %}
+    {% block title %}
+    <a href="/" style="color: aliceblue;">INICIO</a> > <a href="/contaduria/aplicaciones/" style="color: aliceblue;">CONTADURIA</a> >  <a href="/solicitud/solicitudes/" style="color: aliceblue;">SOLICITUD DE PEDIDO</a>
+    {% endblock %}
+    {% block content %}
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Modal para mostrar detalles de la solicitud -->
+    <div class="modal fade" id="solicitudModal" tabindex="-1" role="dialog" aria-labelledby="solicitudModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 style="color: #5454E6;" id="solicitudModalLabel">
+                        <img class="logo img" src="{% static 'assets/logo.png' %}" alt="" style="height: 50px;width: 50px;">
+                        &nbsp;&nbsp; Detalles de la Solicitud</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="row">
+                            <div class="col-8">
+                                <p><b class="text-primary">ID:&nbsp;</b> <span id="solicitudId"></span></p>
+                                <p><b class="text-primary">Estado:&nbsp;</b> <span id="solicitudEstado"></span></p>
+                                <p><b class="text-primary">Fecha:&nbsp;</b> <span id="solicitudFecha"></span></p>
+                                <p><b class="text-primary">Solped #:&nbsp;</b> <span id="solicitudCodigo"></span></p>
+                            </div>
+            
+                            <div class="col-4">
+                                <div class="row text-center">
+                                <h5 class="text-primary"><b>Importe Solicitado: </b></h5>
+                                <h3><b style="color: #f20707;">$ <span id="solicitudImporte"></span></b></h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <p><b class="text-primary">Detalle:&nbsp;</b> <span id="solicitudDetalle"></span></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="p-3">
+                            <table class="table table-responsive">
+                                <thead>
+                                    <tr style="background-color: rgb(59, 78, 247);color: aliceblue;">
+                                        <th>Articulo</th>
+                                        <th>Objeto</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for articulo in articulos %}
+                                    {% if articulo.pedido.pk == solicitud.pk %}
+                                        <tr>
+                                            <td>{{ articulo.articulo }}</td>
+                                            <td>{{ articulo.objeto }}</td>
+                                            <td>{{ articulo.cantidad }}</td>
+                                            <td>{{ articulo.precio_unitario }}</td>
+                                            <td>{{ articulo.total }}</td>
+                                        </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--FILTROS-->
+    <input type="hidden" name="fecha_desde" value="{{ fecha_desde }}">
+    <input type="hidden" name="fecha_hasta" value="{{ fecha_hasta }}">
+
+    <!-- Ventana emergente (modal) para el formulario avanzado -->
+    <div class="modal fade" id="filtroAvanzadoModal" tabindex="-1" role="dialog" aria-labelledby="filtroAvanzadoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+            <div class="modal-content">
+                <form method="GET">
+            
+                    <div class="modal-header">
+                        <h5 style="color: #5454E6;" id="solicitudModalLabel">
+                            <img class="logo img" src="{% static 'assets/logo.png' %}" alt="" style="height: 50px;width: 50px;">
+                            &nbsp;&nbsp; Filtros avanzados
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+            
+                    <div class="modal-body">
+                        <!-- formulario -->
+            
+                        <div class="row p-3">
+                            <div class="btn-group" data-toggle="buttons">
+                                <div class="col-4 m-1">
+                                    <label class="btn btn-outline-primary active w-100 ">
+                                        <input type="radio" name="verSolicitudes" value="pendientes" id="pendientes" checked
+                                            style="appearance: none; -webkit-appearance: none;"> Ver solicitudes pendientes
+                                    </label>
+                                </div>
+                                <div class="col-4 m-1">
+                                    <label class="btn btn-outline-primary  w-100">
+                                        <input type="radio" name="verSolicitudes" value="autorizadas" id="autorizadas" checked
+                                            style="appearance: none; -webkit-appearance: none;"> Ver solicitudes autorizadas
+                                    </label>
+                                </div>
+                                <div class="col-4 m-1">
+                                    <label class="btn btn-outline-primary  w-100">
+                                        <input type="radio" name="verSolicitudes" value="todas" id="todas" checked
+                                            style="appearance: none; -webkit-appearance: none;"> Ver todas las solicitudes
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+            
+                        <div class="row">
+                            <div class="col-6">
+            
+                                <!--FILTRO FECHA-->
+                                <div class="row">
+                                    <div class="col-6 d-block">
+                                        <!-- Filtro desde -->
+                                        <label for="fecha_desde"><b class="text-primary">Fecha desde:</b></label>
+                                        <input type="date" id="fecha_desde" name="fecha_desde" class="form-control">
+                                    </div>
+            
+                                    <div class="col-6 d-block">
+                                        <!-- Filtro hasta -->
+                                        <label for="fecha_hasta"><b class="text-primary">Fecha hasta:</b></label>
+                                        <input type="date" id="fecha_hasta" name="fecha_hasta" class="form-control">
+                                    </div>
+                                </div>
+            
+            
+                                <!--FILTRO PROVEEDOR-->
+                                <div class="row">
+                                    <div class="col-6">
+                                        <label for="secre" style="margin-top: 20px;">
+                                            <p><b class="text-primary">Secretarias</b></p>
+                                            <small class="text-primary font-italic">(Pres. Ctrl para seleccionar más de uno)</small>
+                                        </label>
+            
+                                        <input type="text" id="buscador_secretarias" class="form-control"
+                                            placeholder="Buscar secretaria...">
+                                    </div>
+                                    <div class="col-6">
+            
+                                        <label for="ff" style="margin-top: 20px;">
+                                            <p><b class="text-primary">Fuente Financiamiento</b></p>
+                                            <small class="text-primary font-italic">(Pres. Ctrl para seleccionar más de uno)</small>
+                                        </label>
+                                        <input type="text" id="buscador_ff" class="form-control" placeholder="Buscar ff...">
+                                    </div>
+                                </div>
+            
+                                <div class="row">
+            
+                                    <div class="col-6">
+                                        <!-- lista de secretarias -->
+                                        <select id="secre" name="secre" class="form-control" multiple style="font-size: small;margin-top: 15px; height: 280px; resize: vertical; max-height: 500px;">
+                                            {% for secre in secretariasListado %}
+                                            <option value="{{ secre }}">{{ secre }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+            
+                                    <div class="col-6">
+            
+                                        <!-- lista de ff -->
+                                        <select id="ff" name="ff" class="form-control" multiple style="font-size: small;margin-top: 15px; height: 280px; resize: vertical; max-height: 500px;">
+                                            {% for ff in fondosFinanciamiento %}
+                                            <option value="{{ ff }}">{{ ff }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+            
+                                </div>
+            
+                            </div>
+                            <div class="col-6">
+                                <div class="row">
+                                    <div class="col-6 ">
+                                        <div class="card" style="border: none;">
+                                            <div class="card-body">
+                                                <p class="card-title"> <b class="text-primary">Secretarias seleccionadas</b> </p>
+                                                <ul id="secretarias_seleccionados" class="list-group"
+                                                    style="list-style: none;font-size: smaller;height: 400px;">
+                                                    <!-- Aquí se listarán los secretarias seleccionados -->
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="card" style="border: none;border-top: 15px;">
+                                            <div class="card-body">
+                                                <p class="card-title"><b class="text-primary">Fondos de financiamiento seleccionados</b> </p>
+                                                <ul id="ff_seleccionadas" class="list-group"
+                                                    style="list-style: none;font-size: smaller;height: 400px;">
+                                                    <!-- Aquí se listarán los códigos seleccionados -->
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+            
+                    </div>
+            
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-danger btn-lg btn-block">Aplicar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="container mt-4" style="min-height: 70vh;">
+        <div class="card" >
+            <div class="card-body" >
+
+                <div class="row">
+
+                    <!-- cantidad solicitudes pendientes -->
+                    <div class="col-xl-4 col-md-4 mb-4">
+                        <div class="card shadow h-100 py-2" style="background-color: rgba(244, 6, 6, 0.2);border-left: 4px solid rgba(253, 0, 0, 0.9);">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xl font-weight-bold text-danger text-uppercase mb-1">
+                                            <b>SOLICITUDES PENDIENTES</b></div>
+                                        <div class="h4 mb-0 font-weight-bold text-gray-800" style="color: #f20707;">{{ cantidad_solciitudes_pendientes }}</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt="" style="height: 60px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- total solicitudes pendientes -->
+                    <div class="col-xl-4 col-md-4 mb-4">
+                        <div class="card shadow h-100 py-2" style="background-color: rgba(245, 186, 57, 0.5);border-left: 4px solid rgba(237, 146, 0, 0.9);">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-lg font-weight-boldtext-uppercase mb-1" style="color: rgb(252, 117, 0);">
+                                            <b>TOTAL PENDIENTE</b></div>
+                                        <div class="h4 mb-0 font-weight-bold text-gray-800" style="color: #e96100;">
+                                            $ &nbsp;&nbsp; {{ total_pendientes }}
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt="" style="height: 60px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- total solicitudes pendientes -->
+                    <div class="col-xl-4 col-md-4 mb-4">
+                        <div class="card shadow h-100 py-2" style="background-color: rgba(60, 255, 12, 0.5);border-left: 4px solid rgba(31, 142, 3, 0.5);">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-lg font-weight-bold text-uppercase mb-1" style="color: rgb(35, 154, 5);">
+                                            <b>TOTAL SELECCIONADO</b>
+                                        </div>
+                                        <div id="totalSeleccionado" class="h5 mb-0 font-weight-bold text-gray-800" style="color: rgb(35, 154, 5);">
+                                            $&nbsp;&nbsp;0
+                                        </div>
+                                        
+                                    </div>
+                                    <div class="col-auto">
+                                        <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt="" style="height: 60px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="row">
+<!--                    <div class="row p-3 justify-content-start">
+                        <div class="row">
+                            <div class="row">
+                               <form method="post" action="{% url 'solicitudes' %}">
+                                    {% csrf_token %}
+                                    
+                                    <input type="hidden" name="ver_solicitudes" id="ver_solicitudes">
+                                    <button type="submit" class="btn btn-danger">
+                                        <p class="text-uppercase text-center">Ver todas las solicitudes</p>
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="row flex-end p-2" id="botonAutorizar" style="display: none;">
+                                <form id="formImprimir" method="post" action="{% url 'solicitudes' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="solicitudes_seleccionadas" id="solicitudes_seleccionadas">
+                                    <button type="button" class="btn btn-success" id="imprimirSeleccionados">
+                                        <p class="text-uppercase text-center">Autorizar solicitudes seleccionadas</p>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>--> 
+                    <div class="row">
+                        <form id="formImprimir" method="post" action="{% url 'solicitudes' %}">
+                            {% csrf_token %}
+                            <div class="row p-3">
+                                <div class="col-6 d-flex align-items-stretch">
+                                    <input type="hidden" name="solicitudes_seleccionadas" id="solicitudes_seleccionadas">
+                                    <button type="button" class="btn btn-success btn-lg w-100 flex-fill" id="imprimirSeleccionados">
+                                        Autorizar solicitudes seleccionadas
+                                    </button>
+                                </div>
+                        
+                                <div class="col-6 d-flex align-items-stretch">
+                                    <button type="button" class="btn btn-outline-success btn-lg w-100 flex-fill" data-toggle="modal" data-target="#filtroAvanzadoModal">
+                                        Filtros
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="table-responsive" style="border-radius: 2px;">
+                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0" style="border-radius: 15px;border-color: #5454E6;">
+                                    <thead>
+                                        <tr style="background-color: #5454E6;color: aliceblue;">
+
+                                            <th class="text-center text-uppercase p-3"><input type="checkbox" name="" id="seleccionarTodos" ></th>
+                                            <th class="text-center text-uppercase" style="width: 120px;">Estado</th>
+                                            <th class="text-center text-uppercase">Fecha</th>
+                                            <th class="text-center text-uppercase">Solped #</th>
+                                            <th class="text-center text-uppercase">Detalle</th>
+                                            <th class="text-center text-uppercase">Improte</th>
+                                            <th></th>                                    
+                                            
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for solicitud in solicitudes  %}
+                                        <tr>
+                                            {% if solicitud.ESTADO == False %}
+                                            <td class="text-center p-3"><input type="checkbox" name="seleccionar" value="{{ solicitud.id }}"></td>
+                                            
+                                                <td style="width: 130px;">
+                                                    {% if solicitud.OBSERVADA == False %}
+                                                    🔴Pendiente
+                                                    {% else %}
+                                                    🟠Observada
+                                                    {% endif %}
+                                                </td> 
+                                            {% else %}
+                                            <td></td>
+                                                <td style="width: 130px;">
+                                                    🟢Aprobada
+                                                </td>
+                                            {% endif %}
+                                            <td style="width: 130px;">📅{{ solicitud.FECHA }}</td>
+                                            <td>{{ solicitud.CODIGO }}</td>
+                                            <td>{{ solicitud.DETALLE|lower|capfirst|slice:"100"  }} ...</td>
+                                            <td style="display: none;" id="total_solicitud_{{ solicitud.id }}">{{ solicitud.TOTAL_SOLICITUD }}</td>
+                                            <td>{{ solicitud.TOTAL_SOLICITUD|floatformat:2|intcomma }}</td>
+                                            <!--<td>💵{{solicitud.NRO }}</td>-->
+                                            <td style="width: 150px;">
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <form method="post" action="{% url 'detalle_solicitud' %}">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="solicitud_id" value="{{ solicitud.id }}">
+                                                            <button type="submit" class="btn btn-primary">
+                                                                <img class="logo" src="{% static 'assets/iconos/ver.png' %}" alt="" style="max-height: 30px;">
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        {% if solicitud.ESTADO == False %}
+                                                        <form method="post" action="{% url 'solicitudes' %}">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="solicitud_id" value="{{ solicitud.id }}">
+                                                            <button type="submit" class="btn btn-success">
+                                                                <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">
+                                                            </button>
+                                                        </form>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>   
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                
+                                <div class="pagination justify-content-center">
+                                    {% if page.has_previous %}
+                                    <a href="?page=1" class="btn btn-primary" style="margin: 5px;padding: 1;">Primera</a>
+                                    <a href="?page={{ page.previous_page_number }}" class="btn btn-primary" style="margin: 5px;padding: 1;">Anterior</a>
+                                    {% endif %}
+                                    
+                                    <span class="current">
+                                        {% if cantidad_solciitudes_pendientes > 0 %}
+                                        <b>Página {{ page.number }} de {{ page.paginator.num_pages }}</b>
+                                        {% endif %}
+                                    </span>
+                                                            
+                                    {% if page.has_next %}
+                                    <a href="?page={{ page.next_page_number }}" class="btn btn-primary" style="margin: 5px;padding: 1;">Siguiente</a>
+                                    <a href="?page={{ page.paginator.num_pages }}" class="btn btn-primary" style="margin: 5px;padding: 1;">Última</a>
+                                    {% endif %}
+                                </div>
+                                <div class="container">
+                                    {% if cantidad_solciitudes_pendientes == 0 %}
+                                    <h4 class="text-primary">Sin solicitudes.</h4>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="height: 30px;"></div>
+    </div>
+
+    <script>
+
+            // Función para configurar los campos de fecha con los valores del primer y último día del mes actual
+        function setDefaultDates() {
+            const fechaDesdeInput = document.getElementById('fecha_desde');
+            const fechaHastaInput = document.getElementById('fecha_hasta');
+
+            fechaDesdeInput.value = getFirstDayOfMonth();
+            fechaHastaInput.value = getLastDayOfMonth();
+        }
+
+        function limitarSecretariasSeleccionados() {
+            const maxSecretariasSeleccionados = 20;
+            const maxCaracteresSecretaria = 22;
+            const secretariasSeleccionados = document.getElementById('secretarias_seleccionados').getElementsByTagName('li');
+
+            for (let i = 0; i < secretariasSeleccionados.length; i++) {
+                let secretariaTexto = secretariasSeleccionados[i].textContent.trim();
+                if (secretariaTexto.length > maxCaracteresSecretaria) {
+                secretariaTexto = secretariaTexto.substring(0, maxCaracteresSecretaria) + '...';
+                }
+                secretariasSeleccionados[i].textContent = '👤 ' + secretariaTexto;
+            }
+
+            if (secretariasSeleccionados.length > maxSecretariasSeleccionados) {
+                for (let i = maxSecretariasSeleccionados; i < secretariasSeleccionados.length; i++) {
+                secretariasSeleccionados[i].style.display = 'none';
+                }
+
+                // Agregar un elemento adicional al final que diga "Mas.."
+                const masElement = document.createElement('li');
+                masElement.textContent = '👉 Mas..';
+                secretariasSeleccionados[maxSecretariasSeleccionados - 1].parentNode.appendChild(masElement);
+            } 
+        }
+
+        function limitarffSeleccionados() {
+            const maxffSeleccionadas = 20;
+            const maxCaracteresff = 22;
+            const ffSeleccionadas = document.getElementById('ff_seleccionadas').getElementsByTagName('li');
+
+            for (let i = 0; i < ffSeleccionadas.length; i++) {
+                let ffTexto = ffSeleccionadas[i].textContent.trim();
+                if (ffTexto.length > maxCaracteresff) {
+                ffTexto = ffTexto.substring(0, maxCaracteresff) + '...';
+                }
+                ffSeleccionadas[i].textContent = '👉 ' + ffTexto;
+            }
+
+            if (ffSeleccionadas.length > maxffSeleccionadas) {
+                for (let i = maxffSeleccionadas; i < ffSeleccionadas.length; i++) {
+                ffSeleccionadas[i].style.display = 'none';
+                }
+
+                // Agregar un elemento adicional al final que diga "Mas.."
+                const masElement = document.createElement('li');
+                masElement.textContent = '👉 Mas..';
+                ffSeleccionadas[maxffSeleccionadas - 1].parentNode.appendChild(masElement);
+            } 
+        }
+
+        // Función para obtener las solicitudes seleccionadas
+        function obtenerCasillasSeleccionadas() {
+            var solicitudesSeleccionadas = [];
+            $('input[name="seleccionar"]:checked').each(function () {
+                solicitudesSeleccionadas.push($(this).val());
+            });
+            return solicitudesSeleccionadas;
+        }
+
+        // Evento de clic para el botón "Imprimir Seleccionados"
+        $('#imprimirSeleccionados').click(function () {
+            // Obtener las solicitudes seleccionadas
+            var solicitudesSeleccionadas = obtenerCasillasSeleccionadas();
+
+            // Actualizar el valor del campo oculto con las solicitudes seleccionadas
+            $('#solicitudes_seleccionadas').val(solicitudesSeleccionadas);
+
+            // Enviar el formulario
+            $('#formImprimir').submit();
+        });
+
+
+
+        // Variables para mantener un registro del estado de las casillas individuales
+        var casillasPreviamenteSeleccionadas = {};
+
+        // Manejar cambios en las casillas de verificación individuales
+        $('input[name="seleccionar"]').change(function () {
+            toggleAutorizarButton();
+        });
+
+        // Función para manejar la selección de todas las casillas
+        $('#seleccionarTodos').click(function () {
+            // Obtener el estado actual de la casilla "Seleccionar Todos"
+            var isChecked = $(this).prop('checked');
+
+            // Cambiar el estado de todas las casillas individuales
+            $('input[name="seleccionar"]').prop('checked', isChecked);
+
+            // Llamar a la función para actualizar el botón de autorización
+            toggleAutorizarButton();
+        });
+
+
+        $('#botonAutorizar').click(function () {
+            var solicitudesSeleccionadas = obtenerCasillasSeleccionadas();
+
+        });
+        
+        // Función para manejar la visibilidad del botón Autorizar
+        function toggleAutorizarButton() {
+            var numSolicitudesSeleccionadas = $('input[name="seleccionar"]:checked').length;
+            var totalSeleccionado = 0;
+
+            // Recorre las casillas de verificación seleccionadas y suma los totales
+            $('input[name="seleccionar"]:checked').each(function () {
+                var solicitudId = $(this).val();
+                var totalSolicitud = parseFloat($('#total_solicitud_' + solicitudId).text().replace('$', '').replace(',', ''));
+                totalSeleccionado += totalSolicitud;
+            });
+
+            // Actualiza el total en la tarjeta verde
+            $('#totalSeleccionado').text('$ ' + totalSeleccionado.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'));
+
+//            if (numSolicitudesSeleccionadas > 0) {
+//                $('#botonAutorizar').show();
+//            } else {
+//                $('#botonAutorizar').hide();
+//            }
+        }
+
+        // Llama a la función al cargar la página para verificar el estado inicial
+        toggleAutorizarButton();
+
+    
+        $(document).ready(function () {
+            // Manejar clic en el botón de confirmación
+            $('#confirmarAutorizacion').click(function () {
+                var solicitudesSeleccionadas = [];
+                
+                // Recorre todas las casillas de verificación seleccionadas
+                $('input[name="seleccionar"]:checked').each(function () {
+                    solicitudesSeleccionadas.push($(this).val());
+                });
+
+                
+                // Envía un formulario con las solicitudes seleccionadas
+                $.post('/autorizar_solicitudes/', { solicitudes: solicitudesSeleccionadas }, function (data) {
+                    // Aquí puedes manejar la respuesta del servidor si es necesario
+                    
+                    window.location.reload();
+                });
+                
+                // Cierra el modal de confirmación
+                $('#confirmarModal').modal('hide');
+            });
+    
+            // Función para manejar la selección de todos los elementos
+            $('#seleccionarTodos').click(function () {
+                // Obtén el estado actual de la casilla de verificación "Seleccionar Todos"
+                var isChecked = $(this).prop('checked');
+
+                // Establece el estado de todas las casillas de verificación individuales
+                $('input[name="seleccionar"]').prop('checked', isChecked);
+            });
+
+            function obtenerCasillasSeleccionadas() {
+                var solicitudesSeleccionadas = [];
+                $('input[name="seleccionar"]:checked').each(function () {
+                    solicitudesSeleccionadas.push($(this).val());
+                });
+                return solicitudesSeleccionadas;
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+        limitarSecretariasSeleccionados();
+
+        const buscador = document.getElementById('buscador_secretarias');
+        const selectSecretarias = document.getElementById('secre');
+        const opcionesSecretarias = selectSecretarias.options;
+        const secretariasSeleccionados = document.getElementById('secretarias_seleccionados');
+
+        buscador.addEventListener('input', function () {
+        const filtro = buscador.value.toLowerCase();
+        for (let i = 0; i < opcionesSecretarias.length; i++) {
+            const secre = opcionesSecretarias[i].text.toLowerCase();
+            if (secre.includes(filtro)) {
+                opcionesSecretarias[i].style.display = 'block';
+            } else {
+                opcionesSecretarias[i].style.display = 'none';
+            }
+        }
+        });
+
+        selectSecretarias.addEventListener('change', function () {
+            secretariasSeleccionados.innerHTML = ''; // Limpiamos la lista antes de actualizarla
+
+            for (let i = 0; i < opcionesSecretarias.length; i++) {
+                const opcion = opcionesSecretarias[i];
+                if (opcion.selected) {
+                    const secretariaSeleccionado = document.createElement('li');
+                    secretariaSeleccionado.textContent = opcion.text;
+                    secretariasSeleccionados.appendChild(secretariaSeleccionado);
+                }
+            }
+
+                // Limitar la lista de secretarias seleccionados después de agregar nuevos secretarias
+            limitarSecretariasSeleccionados();
+        });
+
+
+        const buscadorff = document.getElementById('buscador_ff');
+        const selectff = document.getElementById('ff');
+        const opcionesff = selectff.options;
+        const ffSeleccionadas = document.getElementById('ff_seleccionadas');
+
+        buscadorff.addEventListener('input', function () {
+            const filtro2 = buscadorff.value.toLowerCase();
+            for (let i = 0; i < opcionesff.length; i++) {
+                const ff = opcionesff[i].text.toLowerCase();
+                if (ff.includes(filtro2)) {
+                    opcionesff[i].style.display = 'block';
+                } else {
+                    opcionesff[i].style.display = 'none';
+                }
+            }
+        });
+
+
+        selectff.addEventListener('change', function () {
+            ffSeleccionadas.innerHTML = ''; // Limpiamos la lista antes de actualizarla
+            for (let i = 0; i < opcionesff.length; i++) {
+                const opcion2 = opcionesff[i];
+                if (opcion2.selected) {
+                    const ffSeleccionada = document.createElement('li');
+                    ffSeleccionada.textContent = opcion2.text;
+                    ffSeleccionadas.appendChild(ffSeleccionada);
+                }
+            }
+
+                // Limitar la lista de secretarias seleccionados después de agregar nuevos secretarias
+            limitarffSeleccionados();
+        });
+
+
+            // Manejar clic en el botón de filtrar
+        $('#filtroAvanzadoModal').click(function () {
+                // Cierra el modal de confirmación
+            $('#filtroAvanzadoModal').modal('hide');
+            setDefaultDates();
+        });
+    });
+
+    // ------------- creacion de grafico GRAFICO_1 --------------
+
+    // Configuración del gráfico
+
+    const totales_secretarias = [
+        {% for total in totales_secretarias %}
+            {{ total|floatformat:2 }},
+        {% endfor %}
+    ];
+
+    const datos_grafico_1 = {
+        labels: {{ nombres_secretarias|safe }},
+        datasets: [
+        {
+            data: totales_secretarias, 
+            backgroundColor:'rgba(15, 99, 232,0.8)',
+            borderColor: 'rgba(15, 99, 232, 0.2)',
+            borderWidth: 1
+        }
+    ]
+    };
+
+    // Configuración del gráfico
+    const opciones_grafico_1 = {
+        plugins: {
+            legend: {
+                display: false,
+            },
+        },
+        scales: {
+            x: {
+                display: false,
+            },
+            y: {
+                beginAtZero: false,
+                grid: {
+                    display: false,
+                },
+                max: 'auto',//suggestedMax: Math.max(...datos_grafico_1.datasets[0].data), // Configura el máximo sugerido al valor máximo de tus datos
+            },
+        },
+        layout: {
+            padding: {
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+            },
+        },
+    };
+
+
+
+    // Obtén el contexto del lienzo (canvas)
+    const ctx_1 = document.getElementById('GRAFICO_1').getContext('2d');
+
+    // Crea el gráfico de barras
+    const grafico_1 = new Chart(ctx_1, {
+        type: 'bar',
+        data: datos_grafico_1,
+        options: opciones_grafico_1
+    });
+
+    // ------------- creacion de grafico GRAFICO_2 --------------
+
+    // Configuración del gráfico
+    const datos_grafico_2 = {
+        labels: ["Viv. Unifamiliar","Viv. C/ Comercio","Unid. Func. Hab.","Unid. Func. Hab.","Complejo Residencial"],
+        datasets: [
+        {
+            labels: "secretaria 1",
+            data:  [65,220,10,110,250], 
+            backgroundColor:'rgba(15, 99, 232,1)',
+            borderColor: 'rgba(15, 99, 232, 0.2)',
+            borderWidth: 1
+        },
+        {
+            labels: "secretaria 2",
+            data:  [75,200,20,140,280], 
+            backgroundColor:'rgba(244, 6, 6,1)',
+            borderColor: 'rgba(244, 6, 6, 0.2)',
+            borderWidth: 1
+        }
+    ]
+    };
+
+    // Configuración del gráfico
+    const opciones_grafico_2 = {
+        
+            plugins: {
+                legend: {
+                    display: false 
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                }
+            }
+        };
+
+    // Obtén el contexto del lienzo (canvas)
+    const ctx_2 = document.getElementById('GRAFICO_2').getContext('2d');
+
+    // Crea el gráfico de barras
+    const grafico_2 = new Chart(ctx_2, {
+        type: 'pie',
+        data: datos_grafico_2,
+        options: opciones_grafico_2
+    });
+
+    // ------------- creacion de grafico GRAFICO_3 --------------
+
+    // Configuración del gráfico
+    const datos_grafico_3 = {
+        labels: ["Viv. Unifamiliar","Viv. C/ Comercio","Unid. Func. Hab.","Unid. Func. Hab.","Complejo Residencial"],
+        datasets: [
+        {
+            labels: "Real",
+            data:  [65,220,10,110,250], 
+            backgroundColor:'rgba(15, 99, 232,1)',
+            borderColor: 'rgba(15, 99, 232, 0.2)',
+            borderWidth: 1
+        },
+        {
+            labels: "Proyectado",
+            data:  [75,200,20,140,280], 
+            backgroundColor:'rgba(244, 6, 6,1)',
+            borderColor: 'rgba(244, 6, 6, 0.2)',
+            borderWidth: 1
+        }
+    ]
+    };
+
+    // Configuración del gráfico
+    const opciones_grafico_3 = {
+        
+            plugins: {
+                legend: {
+                    display: false 
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                }
+            }
+        };
+
+
+    // Obtén el contexto del lienzo (canvas)
+    const ctx_3 = document.getElementById('GRAFICO_3').getContext('2d');
+
+    // Crea el gráfico de barras
+    const grafico_3 = new Chart(ctx_3, {
+        type: 'bar',
+        data: datos_grafico_3,
+        options: opciones_grafico_3
+    });
+    
+ 
+    </script>
+
+    {% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center align-items-center" style="margin-top: 50;min-height: 70vh;">
+        <div class="col-md-6">
+            <div class="card pt-5">
+                <div class="card-body">
+                    <div class="row text-center">
+                        <h2 class="card-title text-center">Bienvenido a Gestion Pilar</h2>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 p-4" style="text-align: center;align-items: center;">
+                            
+                            <form method="POST">
+                                {% csrf_token %}
+                                {{ form.username.label_tag }}
+                                <div class="form-group mb-4">
+                                    {{ form.username }}
+                                </div>
+                                {{ form.password.label_tag }}
+                                <div class="form-group mb-4">
+                                    {{ form.password }}
+                                </div>
+                                <div class="form-group mb-4">
+                                    <button type="submit" class="btn btn-primary btn-block">Iniciar Sesión</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-6 align-items-center p-4">
+                            <img src="{% static 'assets/logo.png' %}" alt="Logo" class="img-fluid logo" style="max-height: 200px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const togglePassword = document.querySelector('#toggle-password');
+        const passwordField = document.querySelector('#id_password');
+
+        togglePassword.addEventListener('click', function() {
+            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+            this.textContent = type === 'password' ? 'Mostrar' : 'Ocultar';
+        });
+    });
+</script>
+{% endblock %}
