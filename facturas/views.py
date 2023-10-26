@@ -57,6 +57,10 @@ def facturas(request):
         if 'factura_button_id' in request.POST:
             autorizarFactura(request)
 
+        #cambio el estado de una sola factura
+        if 'factura_desautorizar' in request.POST:
+            desautorizarFactura(request)
+
         #cambio el estado si se apreto el boton de autorizar
         if 'autorizar_seleccionados' in request.POST:
             autorizarSelccionados(request)
@@ -237,6 +241,20 @@ def autorizarSelccionados(request):
             codigoU.fecha = timezone.now() - timezone.timedelta(hours=3)
 
             codigoU.save()
+
+    return redirect('facturas')
+
+
+def desautorizarFactura(request):
+
+    #obtengo el id del que se apreto el boton para marcar como Autorizado
+    factura_desautorizar = request.POST.get('factura_desautorizar')
+
+    factura_selec = factura.objects.get(pk=factura_desautorizar)
+    factura_selec.autorizado_por = None
+    factura_selec.autorizado_fecha = None
+    factura_selec.estado = 'Pendiente'
+    factura_selec.save()
 
     return redirect('facturas')
 

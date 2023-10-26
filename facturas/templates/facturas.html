@@ -442,6 +442,11 @@
                                                                 {% endif %}
 
                                                             {% endfor %}
+
+                                                        {% else %}
+                                                            <button type="submit" class="btn btn-danger" name="factura_desautorizar" value="{{ factura.id }}">
+                                                                <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">
+                                                            </button>             
                                                         {% endif %}
                                                     </div>
                                                 </div>
