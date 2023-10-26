@@ -88,7 +88,7 @@ def facturas(request):
 
 
     # Agrega esta línea para definir la cantidad de elementos por página
-    items_por_pagina = 100
+    items_por_pagina = 20
     paginator = Paginator(facturas, items_por_pagina)
     
     # Agrega el parámetro "page" para obtener la página deseada (por ejemplo, ?page=2)
@@ -192,14 +192,10 @@ def obtenerDineroDisponible(codigo):
     proyeccion = proyeccionGastos.objects.filter(CODIGO=codigo, MES = datetime.datetime.now().month, EJERCICIO = datetime.datetime.now().year)
     totalDisponible = proyeccion.aggregate(total=Sum('IMPORTE'))['total'] or 0
 
-
-
     #obtengo el dinero total de las facturas autorizadas del mes
     facturasAutorizadas = factura.objects.filter(codigo__CODIGO=codigo, estado = 'Autorizado', autorizado_fecha__month = ExtractMonth(timezone.now()))
-    
     totalFacturasAutorizadas = facturasAutorizadas.aggregate(total=Sum('total'))['total'] or 0
 
-    
     totalDisponible = float(round(totalDisponible - totalFacturasAutorizadas  + totalUsado, 2))
 
     return totalDisponible

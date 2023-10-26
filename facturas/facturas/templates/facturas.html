@@ -546,8 +546,7 @@
         // Recorre las casillas de verificación seleccionadas y suma los totales
         $('input[name="facturas_check_id"]:checked').each(function () {
             var solicitudId = $(this).val();
-            var totalSolicitudText = $('#total_factura_' + solicitudId).text();
-            var totalSolicitud = parseFloat(totalSolicitudText.replace(',', '.'));
+            var totalSolicitud = parseFloat($('#total_factura_' + solicitudId).text());
             totalSeleccionado += totalSolicitud;
         });
 
@@ -621,9 +620,7 @@
             $('input[name="facturas_check_id"]:checked').each(function() {
                 var facturaId = $(this).val();
                 var nroFactura = $(this).data('nro');
-                var totalText = $(this).data('total');
-                var total = parseFloat(totalText.replace(',', '.'));
-                
+                var total = parseFloat($(this).data('total'));
                 var codigo = $(this).data('codigo');
                 var proveedor = $(this).data('proveedor');
                 totalDisponible[codigo] -= total
