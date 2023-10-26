@@ -192,17 +192,16 @@ def obtenerDineroDisponible(codigo):
     codigosUsados = codigoUsado.objects.filter(codigoFinanciero__CODIGO = codigo, fecha__month = ExtractMonth(timezone.now()))
     totalUsado = codigosUsados.aggregate(total=Sum('montoUsado'))['total'] or 0
 
+    
+
     #obtengo el dinero disponible del mes
     proyeccion = proyeccionGastos.objects.filter(CODIGO=codigo, MES = datetime.datetime.now().month, EJERCICIO = datetime.datetime.now().year)
     totalDisponible = proyeccion.aggregate(total=Sum('IMPORTE'))['total'] or 0
 
-
-
     #obtengo el dinero total de las facturas autorizadas del mes
     facturasAutorizadas = factura.objects.filter(codigo__CODIGO=codigo, estado = 'Autorizado', autorizado_fecha__month = ExtractMonth(timezone.now()))
-    
     totalFacturasAutorizadas = facturasAutorizadas.aggregate(total=Sum('total'))['total'] or 0
-
+    print(totalFacturasAutorizadas)
     
     totalDisponible = float(round(totalDisponible - totalFacturasAutorizadas  + totalUsado, 2))
 
@@ -211,39 +210,32 @@ def obtenerDineroDisponible(codigo):
 def autorizarSelccionados(request):
         #obtengo lista de todos los que se hicieron check
     facturas_check_id = request.POST.getlist('facturas_check_id')
-    totalDisponiblePorCodigo = {}
 
     for factura_check_id in facturas_check_id:
         factura_selec = factura.objects.get(pk=factura_check_id)
-        
         factura_selec.autorizado_por = request.user.username
         factura_selec.autorizado_fecha = timezone.now() - timezone.timedelta(hours=3)
         factura_selec.estado = 'Autorizado'
-        factura_selec.save()
 
         codigo = factura_selec.codigo.CODIGO
+        
+        if obtenerDineroDisponible(codigo) < factura_selec.total:
 
-        if codigo in totalDisponiblePorCodigo:
-            totalDisponiblePorCodigo[codigo] -= float(factura_selec.total)
-
-        else:
-            totalDisponiblePorCodigo[codigo] = obtenerDineroDisponible(codigo)
-
-    for codigo, totalDisponible in  totalDisponiblePorCodigo.items():
-        if totalDisponible < 0:
             global codigoIngresado
             #agrego los datos de quien uso el codigo
             codigoU = codigoUsado()
             codigoU.codigo = codigoAprobacion.objects.get(codigoApro = codigoIngresado) 
+            codigoU.factura = factura_selec
             codigoU.codigoFinanciero = codigoFinanciero.objects.get(CODIGO = codigo)
-            codigoU.montoUsado  -= Decimal(str(totalDisponible))
+            codigoU.montoUsado  = float(factura_selec.total) - obtenerDineroDisponible(codigo)
             codigoU.usuario = request.user.username
             codigoU.fecha = timezone.now() - timezone.timedelta(hours=3)
 
             codigoU.save()
 
+        factura_selec.save()
+            
     return redirect('facturas')
-
 
 def desautorizarFactura(request):
 
@@ -254,8 +246,14 @@ def desautorizarFactura(request):
     factura_selec.autorizado_por = None
     factura_selec.autorizado_fecha = None
     factura_selec.estado = 'Pendiente'
-    factura_selec.save()
 
+    if codigoUsado.objects.filter(factura = factura_selec).exists():
+        codigosUsados = codigoUsado.objects.filter(factura = factura_selec)
+
+        for codigo in codigosUsados:
+            codigo.delete()
+            
+    factura_selec.save()
     return redirect('facturas')
 
 def autorizarFactura(request):
@@ -267,23 +265,25 @@ def autorizarFactura(request):
     factura_selec.autorizado_por = request.user.username
     factura_selec.autorizado_fecha = timezone.now() - timezone.timedelta(hours=3)
     factura_selec.estado = 'Autorizado'
-    factura_selec.save()
     
     codigo = factura_selec.codigo.CODIGO
 
     totalDisponible = obtenerDineroDisponible(codigo)
 
-    if totalDisponible < 0:
+    if totalDisponible < factura_selec.total:
         global codigoIngresado
         
         #agrego los datos de quien uso el codigo
         codigoU = codigoUsado()
         codigoU.codigo = codigoAprobacion.objects.get(codigoApro = codigoIngresado) 
+        codigoU.factura = factura_selec
         codigoU.codigoFinanciero = factura_selec.codigo
-        codigoU.montoUsado = - totalDisponible
+        codigoU.montoUsado  = float(factura_selec.total) - totalDisponible
         codigoU.usuario = request.user.username
         codigoU.fecha = timezone.now() - timezone.timedelta(hours=3)
 
         codigoU.save()
+    
+    factura_selec.save()
 
     return redirect('facturas')

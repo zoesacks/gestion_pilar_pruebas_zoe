@@ -27,8 +27,9 @@ class factura(models.Model):
     fondoAfectado = models.CharField(max_length = 255, blank=True, null = True)
     estado = models.CharField(max_length=20, choices=estado_choice, default='Pendiente')
 
-    def str(self):
+    def __str__(self):
         return f'Nro factura: {self.nroFactura}'
+
 
     class Meta:
         verbose_name = 'factura'
@@ -68,6 +69,7 @@ class codigoAprobacion(models.Model):
 
 class codigoUsado(models.Model):
     codigo = models.ForeignKey(codigoAprobacion, on_delete=models.CASCADE, blank=True, null=True)
+    factura = models.ForeignKey(factura, on_delete=models.CASCADE, blank=True, null=True)
     codigoFinanciero = models.ForeignKey(codigoFinanciero, on_delete=models.CASCADE, blank=True, null=True)
     fecha = models.DateTimeField(blank=True, null=True)
     montoUsado = models.DecimalField(max_digits=15, decimal_places=2, default=0, blank=True, null=True)

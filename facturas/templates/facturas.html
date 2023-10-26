@@ -444,9 +444,10 @@
                                                             {% endfor %}
 
                                                         {% else %}
-                                                            <button type="submit" class="btn btn-danger" name="factura_desautorizar" value="{{ factura.id }}">
+                                                            <button type="submit" class="btn btn-danger botonFactura" name="factura_desautorizar" value="{{ factura.id }}" style="display: none">
                                                                 <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">
-                                                            </button>             
+                                                            </button>         
+                                                            <div class="fecha-auto" data-fecha-auto="{{ factura.autorizado_fecha }}"></div>    
                                                         {% endif %}
                                                     </div>
                                                 </div>
@@ -590,6 +591,31 @@
         // Establece el estado de todas las casillas de verificación individuales
         $('input[name="facturas_check_id"]').prop('checked', isChecked);
     });
+
+
+    // Función para verificar y mostrar los botones
+    function verificarFacturas() {
+        var botonesFactura = document.querySelectorAll('.botonFactura');
+        var fechasAuto = document.querySelectorAll('.fecha-auto');
+
+        for (var i = 0; i < botonesFactura.length; i++) {
+            var autorizacionFecha = new Date(fechasAuto[i].getAttribute('data-fecha-auto'));
+            var fechaActual = new Date();
+
+            // Calcular la fecha límite (24 horas atrás)
+            var fechaLimite = new Date(fechaActual);
+            fechaLimite.setHours(fechaActual.getHours() - 24);
+
+            if (autorizacionFecha > fechaLimite) {
+                botonesFactura[i].style.display = "block";
+            } else {
+                botonesFactura[i].style.display = "none";
+            }
+        }
+    }
+
+    // Llama a la función de verificación cuando se carga la página
+    window.onload = verificarFacturas;
 
     $(document).ready(function () { 
         // Manejar clic en el botón de confirmación
