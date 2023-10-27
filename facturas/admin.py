@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.db import models
-from .models import factura, codigoAprobacion, codigoUsado
+from .models import factura, codigoAprobacion, codigoUsado, ordenDePago
 from administracion.models import codigoFinanciero
 from django.db.models import Sum
 from import_export.admin import ImportExportModelAdmin
@@ -43,6 +43,15 @@ class facturaResource(resources.ModelResource):
                         raise ValidationError("El campo 'total' no puede estar vacío.")
 
 
+#controlo como se importa/exporta
+class ordenDePagoResource(resources.ModelResource):
+        nroFactura = fields.Field(attribute='nroFactura', column_name='nroFactura')
+        proveedor = fields.Field(attribute='proveedor', column_name='proveedor')
+        op = fields.Field(attribute='op', column_name='21 Nro')
+        fechaOp = fields.Field(attribute='fechaOp', column_name='fecha Op')
+
+        class Meta:
+                model = ordenDePago
 
 
 @admin.register(factura)
@@ -55,6 +64,14 @@ class facturaAdmin(ImportExportModelAdmin):
         def total_facturas(self, obj):
                 importe = obj.total or 0
                 return "$ {:,.2f}".format(importe)
+        
+
+@admin.register(ordenDePago)
+class ordenDePagoAdmin(ImportExportModelAdmin):
+        resource_class = ordenDePagoResource
+        list_display = ('nroFactura', 'proveedor', 'op')
+        list_filter = ('nroFactura', 'proveedor', 'op')
+
 
 @admin.register(codigoAprobacion)
 class codigoAprobacionAdmin(ImportExportModelAdmin):

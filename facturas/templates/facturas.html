@@ -52,8 +52,8 @@
                             </div>
                             <div class="col-4 m-1">
                                 <label class="btn btn-outline-primary  w-100">
-                                    <input type="radio" name="verFacturas" value="todas" id="todas" checked
-                                        style="appearance: none; -webkit-appearance: none;"> Ver todas las facturas
+                                    <input type="radio" name="verFacturas" value="op" id="todas" checked
+                                        style="appearance: none; -webkit-appearance: none;"> Ver facturas con OP
                                 </label>
                             </div>
                         </div>
@@ -443,11 +443,12 @@
 
                                                             {% endfor %}
 
-                                                        {% else %}
+                                                        {% elif factura.estado == 'Autorizado'%}
                                                             <button type="submit" class="btn btn-danger botonFactura" name="factura_desautorizar" value="{{ factura.id }}" style="display: none">
                                                                 <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">
                                                             </button>         
-                                                            <div class="fecha-auto" data-fecha-auto="{{ factura.autorizado_fecha }}"></div>    
+                                                            <div class="fecha-auto" data-fecha-auto="{{ factura.autorizado_fecha }}"></div> 
+                                                            
                                                         {% endif %}
                                                     </div>
                                                 </div>

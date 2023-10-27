@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
-from .models import factura, codigoUsado, codigoAprobacion
+from .models import factura, codigoUsado, codigoAprobacion, ordenDePago
 from administracion.models import codigoFinanciero
 from contaduria.models import proyeccionGastos
 from django.utils import timezone
@@ -20,6 +20,11 @@ codigoIngresado = ""
 @contaduria_required
 def detalleFactura(request, factura_detalle_id):
     factura_detalle = factura.objects.get(pk=factura_detalle_id)
+    op = None
+
+    if ordenDePago.objects.filter(nroFactura = factura_detalle.nroFactura, proveedor = factura_detalle.proveedor).exists():
+        op = ordenDePago.objects.get(nroFactura = factura_detalle.nroFactura, proveedor = factura_detalle.proveedor)
+
 
     totalDisponible = obtenerDineroDisponible(factura_detalle.codigo.CODIGO)
 
@@ -34,6 +39,7 @@ def detalleFactura(request, factura_detalle_id):
     context = {
         'factura' : factura_detalle,
         'totalDisponible': totalDisponible,
+        'ordenDePago': op,
     }
 
     return render(request, 'factura_detalle.html', context)
@@ -134,8 +140,8 @@ def filtrar(request):
         if verFacturas == "autorizadas":
             facturas = factura.objects.filter(codigo__CODIGO__in=grupos_usuario, estado = 'Autorizado')
 
-        elif verFacturas == "todas":
-            facturas = factura.objects.filter(codigo__CODIGO__in=grupos_usuario)
+        elif verFacturas == "op":
+            facturas = factura.objects.filter(codigo__CODIGO__in=grupos_usuario, estado = 'OP')
 
         else: 
             facturas = facturas.filter(codigo__CODIGO__in=grupos_usuario, estado = 'Pendiente')
@@ -201,7 +207,6 @@ def obtenerDineroDisponible(codigo):
     #obtengo el dinero total de las facturas autorizadas del mes
     facturasAutorizadas = factura.objects.filter(codigo__CODIGO=codigo, estado = 'Autorizado', autorizado_fecha__month = ExtractMonth(timezone.now()))
     totalFacturasAutorizadas = facturasAutorizadas.aggregate(total=Sum('total'))['total'] or 0
-    print(totalFacturasAutorizadas)
     
     totalDisponible = float(round(totalDisponible - totalFacturasAutorizadas  + totalUsado, 2))
 

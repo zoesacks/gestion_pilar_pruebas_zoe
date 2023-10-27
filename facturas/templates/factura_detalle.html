@@ -34,6 +34,8 @@
                             <p><b class="text-primary text-uppercase">Fondo de financiamiento :&nbsp;&nbsp;</b>{{factura.ff }}</p>
                             <p><b class="text-primary text-uppercase">Objeto :&nbsp;&nbsp;</b>{{ factura.objeto }}</p>
                             <p><b class="text-primary text-uppercase">Fondo afectado :&nbsp;&nbsp;</b>{{factura.fondoAfectado }}</p>
+                
+                        
                         </div>
                         <div class="col-4">
                             <div class="row text-center">
@@ -73,10 +75,17 @@
                                         </div>
 
                                         {% else %}
-                                        <div class="row">
-                                            <p class="text-uppercase"><b class="text-primary text-uppercase">Aprobado por :&nbsp;&nbsp;</b>{{ factura.autorizado_por}}</p>
-                                            <p class="text-uppercase"><b class="text-primary text-uppercase">Fecha de aprobación :&nbsp;&nbsp;</b>{{ factura.autorizado_fecha }}</p>
-                                        </div>
+                        
+                                            <div class="row">
+                                                <p class="text-uppercase"><b class="text-primary text-uppercase">Aprobado por :&nbsp;&nbsp;</b>{{ factura.autorizado_por}}</p>
+                                                <p class="text-uppercase"><b class="text-primary text-uppercase">Fecha de aprobación :&nbsp;&nbsp;</b>{{ factura.autorizado_fecha }}</p>
+                                            </div>
+
+                                            {% if factura.estado == "OP" %}
+                                                <p><b class="text-primary text-uppercase">Orden de pago :&nbsp;&nbsp;</b>{{ ordenDePago.op }}</p>
+                                                <p><b class="text-primary text-uppercase">Fecha:&nbsp;&nbsp;</b>{{ ordenDePago.fechaOp }}</p>
+                                            {% endif %}
+
                                         {% endif %}
                                     </div>
 

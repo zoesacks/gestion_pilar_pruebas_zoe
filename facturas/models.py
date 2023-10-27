@@ -10,6 +10,7 @@ class factura(models.Model):
     estado_choice = (
         ('Pendiente', 'Pendiente'),
         ('Autorizado', 'Autorizado'),
+        ('OP', 'OP'),
     )
 
     autorizado_por = models.CharField(max_length=255, blank=True, null=True)
@@ -29,7 +30,6 @@ class factura(models.Model):
 
     def __str__(self):
         return f'Nro factura: {self.nroFactura}'
-
 
     class Meta:
         verbose_name = 'factura'
@@ -62,6 +62,22 @@ class factura(models.Model):
     def existe(instance):
         return factura.objects.filter(proveedor=instance.proveedor, nroFactura=instance.nroFactura).exclude(pk=instance.pk).exists()
 
+
+class ordenDePago(models.Model):
+    op = models.CharField(max_length = 255, blank=True, null = True)
+    fechaOp = models.DateField(blank=True, null = True)
+    nroFactura = models.CharField(max_length = 255, blank=True, null = True)
+    proveedor = models.CharField(max_length = 255, blank=True, null = True)
+
+    def save(self, *args, **kwargs):
+
+        facturaOp = factura.objects.get(nroFactura = self.nroFactura, proveedor = self.proveedor) or 0
+
+        if facturaOp.existe:
+            facturaOp.estado = 'OP'
+            facturaOp.save()
+
+        super(ordenDePago, self).save(*args, **kwargs)
 
 class codigoAprobacion(models.Model):
     codigoApro = models.CharField(max_length=255, blank=True, null=True)
