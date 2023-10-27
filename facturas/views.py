@@ -205,9 +205,9 @@ def obtenerDineroDisponible(codigo):
     totalDisponible = proyeccion.aggregate(total=Sum('IMPORTE'))['total'] or 0
 
     #obtengo el dinero total de las facturas autorizadas del mes
-    facturasAutorizadas = factura.objects.filter(codigo__CODIGO=codigo, estado = 'Autorizado', autorizado_fecha__month = ExtractMonth(timezone.now()))
+    facturasAutorizadas = factura.objects.filter(codigo__CODIGO=codigo, autorizado_fecha__month = ExtractMonth(timezone.now())).exclude(estado = 'Autorizado')
     totalFacturasAutorizadas = facturasAutorizadas.aggregate(total=Sum('total'))['total'] or 0
-    
+
     totalDisponible = float(round(totalDisponible - totalFacturasAutorizadas  + totalUsado, 2))
 
     return totalDisponible
