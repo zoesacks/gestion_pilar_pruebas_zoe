@@ -1,10 +1,6 @@
-from collections.abc import Iterable
-from django.core.exceptions import ValidationError
-from django.contrib import messages
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from administracion.models import codigoFinanciero
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
 
 class factura(models.Model):
     estado_choice = (
@@ -56,7 +52,10 @@ class factura(models.Model):
         if self.existe():
             # Si ya existe una factura con los mismos datos, no la guardes
             return
-        
+        else:
+            self.proveedor = str(self.proveedor).strip()
+            self.nroFactura = str(self.nroFactura).strip()
+
         super(factura, self).save(*args, **kwargs)
 
     def existe(instance):
@@ -70,12 +69,31 @@ class ordenDePago(models.Model):
     proveedor = models.CharField(max_length = 255, blank=True, null = True)
 
     def save(self, *args, **kwargs):
+        
+        self.proveedor = str(self.proveedor).strip()
+        self.nroFactura = str(self.nroFactura).strip()
 
-        facturaOp = factura.objects.get(nroFactura = self.nroFactura, proveedor = self.proveedor) or 0
+        try:
+            #print(f'Filtrando proveedor: {self.proveedor} factura {self.nroFactura}')
 
-        if facturaOp.existe:
-            facturaOp.estado = 'OP'
-            facturaOp.save()
+            fact = str(self.nroFactura).strip()
+            prove = str(self.proveedor).strip()
+        
+            facturaOp = factura.objects.get(nroFactura=fact, proveedor=prove)
+
+
+            if facturaOp.estado in ['Pendiente', 'Autorizado']:
+                
+                facturaOp.estado = 'OP'
+                facturaOp.autorizado_fecha = self.fechaOp
+                #facturaOp.auto
+                facturaOp.save()
+
+        except ObjectDoesNotExist:
+            # La factura no existe, puedes manejarlo de acuerdo a tus necesidades
+            # Por ejemplo, imprimir un mensaje de registro
+            print("La factura no existe.")
+        
 
         super(ordenDePago, self).save(*args, **kwargs)
 

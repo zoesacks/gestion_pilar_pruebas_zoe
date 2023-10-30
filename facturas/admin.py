@@ -42,7 +42,6 @@ class facturaResource(resources.ModelResource):
                 if not row.get('total'):
                         raise ValidationError("El campo 'total' no puede estar vacío.")
 
-
 #controlo como se importa/exporta
 class ordenDePagoResource(resources.ModelResource):
         nroFactura = fields.Field(attribute='nroFactura', column_name='nroFactura')
@@ -53,25 +52,36 @@ class ordenDePagoResource(resources.ModelResource):
         class Meta:
                 model = ordenDePago
 
-
 @admin.register(factura)
 class facturaAdmin(ImportExportModelAdmin):
         resource_class = facturaResource
-        list_display = ('nroFactura', 'proveedor', 'total_facturas',)
+        list_display = ('nroFactura', 'proveedor', 'total_facturas','op_relacionada','estado')
         list_filter = ('estado', 'codigo', 'nroFactura', 'proveedor',)
         exclude = ('estado',)
 
+        def op_relacionada(self, obj):
+            
+                fact = str(obj.nroFactura).strip()
+                prove = str(obj.proveedor).strip()
+
+                ordenes = ordenDePago.objects.filter(nroFactura=fact, proveedor=prove).first()
+
+                if ordenes:
+                        orden = ordenes.op
+                else:
+                        orden = "Sin orden de pago"
+
+                return orden
+        
         def total_facturas(self, obj):
                 importe = obj.total or 0
                 return "$ {:,.2f}".format(importe)
-        
 
 @admin.register(ordenDePago)
 class ordenDePagoAdmin(ImportExportModelAdmin):
         resource_class = ordenDePagoResource
         list_display = ('nroFactura', 'proveedor', 'op')
         list_filter = ('nroFactura', 'proveedor', 'op')
-
 
 @admin.register(codigoAprobacion)
 class codigoAprobacionAdmin(ImportExportModelAdmin):

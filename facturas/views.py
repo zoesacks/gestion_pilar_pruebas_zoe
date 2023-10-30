@@ -49,10 +49,10 @@ def facturas(request):
 
     #filtra por proveedor, por factura y por facturas autorizadas y no autorizadas
     facturas = filtrar(request)
-    
+
     #Listado de proveedores y facturas sin repetidos
-    proveedores = facturas.values_list('proveedor', flat=True).distinct()
-    nroFacturas = facturas.values_list('nroFactura', flat=True).distinct()
+    proveedores = factura.objects.values_list('proveedor', flat=True).distinct()
+    nroFacturas = factura.objects.values_list('nroFactura', flat=True).distinct()
     
     cantidad_facturas_pendientes = facturas.count()
 
@@ -126,8 +126,8 @@ def filtrar(request):
     #grupo = request.user.groups.first()
     grupos_usuario = request.user.groups.values_list('name', flat=True)
 
-    facturas = facturas.filter(codigo__CODIGO__in=grupos_usuario, estado='Pendiente')
-    #facturas = facturas.filter(codigo__CODIGO = grupo, estado = 'Pendiente')
+    facturas = facturas.filter(codigo__CODIGO__in=grupos_usuario, estado = 'Pendiente')
+    #facturas = facturas.filter(codigo__CODIGO = grupo)
 
     # Obtener los parámetros de los filtros (si están presentes)
     fecha_desde = request.GET.get('fecha_desde')
@@ -140,11 +140,14 @@ def filtrar(request):
         if verFacturas == "autorizadas":
             facturas = factura.objects.filter(codigo__CODIGO__in=grupos_usuario, estado = 'Autorizado')
 
-        elif verFacturas == "op":
+        if verFacturas == "op":
             facturas = factura.objects.filter(codigo__CODIGO__in=grupos_usuario, estado = 'OP')
 
-        else: 
-            facturas = facturas.filter(codigo__CODIGO__in=grupos_usuario, estado = 'Pendiente')
+        if verFacturas == "pendientes": 
+            facturas = factura.objects.filter(codigo__CODIGO__in=grupos_usuario, estado = 'Pendiente')
+
+        if verFacturas == "todas":
+            facturas = factura.objects.filter(codigo__CODIGO__in=grupos_usuario)
 
     # Aplicar los filtros si están presentes
     if fecha_desde and fecha_hasta:

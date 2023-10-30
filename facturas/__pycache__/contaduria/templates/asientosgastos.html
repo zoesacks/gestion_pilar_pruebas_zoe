@@ -1,0 +1,384 @@
+{% extends 'index.html' %}
+{% load humanize %}
+{% load static %}
+{% block title %}
+<a href="/" style="color: aliceblue;">INICIO</a> > <a href="/contaduria/aplicaciones/" style="color: aliceblue;">CONTADURIA</a>  > <a href="/contaduria/gastos/" style="color: aliceblue;">gastos</a> > <a href="/contaduria/gastos/asientosgasto/" style="color: aliceblue;">asientos de gastos</a>
+{% endblock %}
+{% block content %}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Add hidden fields for filter parameters -->
+<input type="hidden" name="fecha_desde" value="{{ fecha_desde }}">
+<input type="hidden" name="fecha_hasta" value="{{ fecha_hasta }}">
+
+<!-- Ventana emergente (modal) para el formulario avanzado -->
+<div class="modal fade" id="filtroAvanzadoModal" tabindex="-1" role="dialog" aria-labelledby="filtroAvanzadoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title text-primary" id="filtroAvanzadoModalLabel">Configuración avanzada de reporte</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <!-- formulario -->
+          <form method="GET" action="{% url 'asientosgastos' %}">
+            {% csrf_token %}
+            <div class="form-row">
+              <div class="col-lg-6">
+  
+                <div class="form-row">
+  
+                  <div class="col-lg-6">
+  
+                    <!-- Filtro desde -->
+                    <label for="fecha_desde"><b class="text-primary">Fecha desde:</b></label>
+                    <input type="date" id="fecha_desde" name="fecha_desde" class="form-control">
+                  </div>
+  
+                  <div class="col-lg-6">
+  
+                    <!-- Filtro hasta -->
+                    <label for="fecha_hasta"><b class="text-primary">Fecha hasta:</b></label>
+                    <input type="date" id="fecha_hasta" name="fecha_hasta" class="form-control">
+                  </div>
+  
+                </div>
+  
+                <div class="form-row">
+                  <div class="col-lg-6">
+                    <label for="proveedor" style="margin-top: 20px;">
+                      <p><b class="text-primary">Proveedor</b></p>
+                      <small class="text-primary font-italic">(Pres. Ctrl para seleccionar más de uno)</small>
+                    </label>
+                    
+                    <input type="text" id="buscador_proveedores" class="form-control" placeholder="Buscar proveedor...">
+                  </div>
+                  <div class="col-lg-6">
+  
+                    <label for="codigo" style="margin-top: 20px;">
+                      <p><b class="text-primary">Código financiero:</b></p>
+                      <small class="text-primary font-italic">(Pres. Ctrl para seleccionar más de uno)</small>
+                    </label>
+                    <input type="text" id="buscador_codigos" class="form-control" placeholder="Buscar codigo...">
+                  </div>
+                </div>
+  
+                <div class="form-row">
+  
+                  <div class="col-lg-6">
+  
+                    <!-- lista de proveedores -->
+                    <select id="proveedor" name="proveedor" class="form-control" multiple style="font-size: small;margin-top: 15px; height: 280px; resize: vertical; max-height: 500px;">
+                      {% for proveedor in proveedores %}
+                        <option value="{{ proveedor }}">{{ proveedor }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+  
+                  <div class="col-lg-6">
+  
+                    <!-- lista de proveedores -->
+                    <select id="codigo" name="codigo" class="form-control" multiple style="font-size: small;margin-top: 15px; height: 280px; resize: vertical; max-height: 500px;">
+                      {% for codigo in codigos %}
+                        <option value="{{ codigo }}">{{ codigo }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+  
+                </div>
+  
+              </div>
+              <div class="col-lg-6">
+                
+                <div class="row">
+                  <div class="col-7 ">
+                    <div class="card" style="border: none;">
+                      <div class="card-body">
+                        <h6 class="card-title"><b class="text-primary">Proveedores seleccionados</b></h6>
+                        <ul id="proveedores_seleccionados" class="list-group" style="list-style: none;font-size: smaller;height: 400px;">
+                          <!-- Aquí se listarán los proveedores seleccionados -->
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-5">
+                    <div class="card" style="border: none;border-top: 15px;">
+                      <div class="card-body">
+                        <h6 class="card-title"><b class="text-primary">Codidos seleccionados</b></h6>
+                        <ul id="codigos_seleccionados" class="list-group" style="list-style: none;font-size: smaller;height: 400px;">
+                          <!-- Aquí se listarán los códigos seleccionados -->
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row justify-content-end mt-auto">
+  
+                  <div style="margin: 15px;">
+  
+                    <!-- Boton para enviar formulario -->
+                    <button type="submit" class="btn btn-primary btn-block">Aplicar</button>
+                  </div>
+                  
+                </div>
+  
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+</div>
+  
+
+<div class="container mt-4">
+    <div class="card" >
+        <div class="card-body" >
+
+            <div class="row">
+                <!-- total pagado -->
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card shadow h-100 py-2" style="background-color: rgba(1, 37, 242, 0.729);border-left: 4px solid rgba(1, 10, 185, 0.9);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xl font-weight-bold text-primary text-uppercase mb-1">
+                                        <b style="color: aliceblue;">TOTAL PAGADO</b></div>
+                                    <div class="h4 mb-0 font-weight-bold" style="color: #ffffff;">$ {{ total_pagado.total_pagado|floatformat:0|intcomma }} M</div>
+                                </div>
+                                <div class="col-auto">
+                                    <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt="" style="height: 60px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- total pagado -->
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card shadow h-100 py-2" style="background-color: rgba(244, 6, 6, 0.2);border-left: 4px solid rgba(253, 0, 0, 0.9);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xl font-weight-bold text-danger text-uppercase mb-1">
+                                        <b>PROYECTADO</b></div>
+                                    <div class="h4 mb-0 font-weight-bold text-gray-800" style="color: #f20707;">$ {{ total_proyecciones|floatformat:0|intcomma }} M</div>
+                                </div>
+                                <div class="col-auto">
+                                    <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt="" style="height: 60px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card shadow h-100 py-2" style="background-color: rgba(245, 186, 57, 0.5);border-left: 4px solid rgba(237, 146, 0, 0.9);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xl font-weight-boldtext-uppercase mb-1" style="color: rgb(252, 117, 0);">
+                                        <b>SIN USAR</b></div>
+                                    <div class="h4 mb-0 font-weight-bold text-gray-800" style="color: #e96100;">100</div>
+                                </div>
+                                <div class="col-auto">
+                                    <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt="" style="height: 60px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="row">
+                        <div class="col-6 p-1">
+                            <div class="d-flex flex-column align-items-center">
+                              <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#filtroAvanzadoModal" style="align-items: center;width: 120px;border-radius: 15px;">
+                                                            
+                                <div style="padding-bottom: 0px;">
+                                  <img class="logo" src="{% static 'assets/iconos/filtro.png' %}" alt="" style="max-height: 80px;">
+                                </div>
+                                <p><b>Filtros</b></p>
+                              </button>
+                            </div>
+                        </div>
+                        <div class="col-6 p-1">
+                          <div class="d-flex flex-column align-items-center">
+                            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#filtroAvanzadoModal" style="align-items: center;width: 120px;border-radius: 15px;">
+                                                          
+                              <div style="padding-bottom: 0px;">
+                                <img class="logo" src="{% static 'assets/iconos/descargar.png' %}" alt="" style="max-height: 80px;">
+                              </div>
+                              <p><b>Descargar</b></p>
+                            </button>
+                          </div>
+                      </div>
+                      </div>
+                </div>
+            </div>
+
+            <div class="row">
+              <!-- GRAFICO -->
+              <div class="col-12">
+                <div class="card shadow mb-4">
+                  <!-- Card Header - Dropdown -->
+                  <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-primary" style="max-height: 200px;">
+                    <h6 class="m-0 font-weight-bold text-light">Flujo de gastos pagados | Ejercicio 2023</h6>
+          
+                  </div>
+                  <!-- Card Body -->
+                  <div class="card-body">
+                    <div class="chart-area">
+                      <canvas id="Grafico_gastos_por_mes_barras"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="table-responsive" style="border-radius: 2px;">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0" style="border-radius: 15px;border-color: #5454E6;">
+                            <thead>
+                                <tr class="text-light bg-primary">
+                                    <th>Cod. Financ.</th>
+                                    <th>Proveedor</th>
+                                    <th>Fecha</th>
+                                    <th>Jursidicción</th>
+                                    <th>Pagado</th>
+                                    <th>Fuente F.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                              {% for pagado in page_obj  %}
+                              {% if pagado.Pagado > 0 %}
+                                <tr>
+                                    <td>{{ pagado.Codigo }}</td>
+                                    <td>{{ pagado.ProveedorTipo }}-{{ pagado.ProveedorNumero }}   {{ pagado.RazonSocial }}</td>
+                                    <td>{{ pagado.Fecha }}</td>
+                                    <td>{{ pagado.JurisdiccionDescripcion }}</td>
+                                    <td>{{ pagado.Pagado|floatformat:0|intcomma }}</td> 
+                                    <td>{{ pagado.FuenteFinanciamiento }}</td>
+                                </tr>   
+                              {% endif %}
+                              {% endfor %}
+                            </tbody>
+                            
+                            
+                        </table>
+                        
+                        <div class="pagination justify-content-center">
+                            {% if page.has_previous %}
+                            <a href="?page=1" class="btn btn-primary" style="margin: 5px;padding: 1;">Primera</a>
+                            <a href="?page={{ page.previous_page_number }}" class="btn btn-primary" style="margin: 5px;padding: 1;">Anterior</a>
+                            {% endif %}
+                        
+                            <span class="current">
+                                <b>Página {{ page.number }} de {{ page.paginator.num_pages }}</b>
+                            </span>
+                        
+                            {% if page.has_next %}
+                            <a href="?page={{ page.next_page_number }}" class="btn btn-primary" style="margin: 5px;padding: 1;">Siguiente</a>
+                            <a href="?page={{ page.paginator.num_pages }}" class="btn btn-primary" style="margin: 5px;padding: 1;">Última</a>
+                            {% endif %}
+                        </div>
+                
+                    
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="" style="height: 30px;"></div>
+
+
+<script>
+  // Función para obtener los últimos 6 meses, incluyendo el mes anterior
+  function obtenerUltimos6Meses() {
+      const fechaActual = new Date();
+      const meses = [];
+      
+      for (let i = -1; i <= 5; i++) {
+          const mes = fechaActual.getMonth() + i;
+          const año = fechaActual.getFullYear();
+          if (mes < 0) {
+              meses.push(`${año - 1}-${String(12 + mes + 1).padStart(2, '0')}`);
+          } else if (mes > 11) {
+              meses.push(`${año + 1}-${String(mes - 11).padStart(2, '0')}`);
+          } else {
+              meses.push(`${año}-${String(mes + 1).padStart(2, '0')}`);
+          }
+      }
+      
+      return meses;
+  }
+  
+  // Datos de ejemplo (reemplaza con tus datos de Django)
+  const datos = {
+      labels: obtenerUltimos6Meses(),
+      datasets: [{
+      type: 'line',
+      label: "Total Pagados",
+      lineTension: 0.3,
+      backgroundColor: "rgba(40, 116, 255, 0.2)", // Cambiar a azul (primary)
+      borderColor: "rgba(40, 116, 255, 1)", // Cambiar a azul (primary)
+      borderWidth: 2,
+      pointRadius: 3,
+      pointBackgroundColor: "rgba(40, 116, 255, 0.2)", // Cambiar a azul (primary)
+      pointBorderColor: "rgba(40, 116, 255, 1)", // Cambiar a azul (primary)
+      pointHoverRadius: 3,
+      pointHoverBackgroundColor: "rgba(40, 116, 255, 1)", // Cambiar a azul (primary)
+      pointHoverBorderColor: "rgba(40, 116, 255, 0.2)", // Cambiar a azul (primary)
+      pointHitRadius: 10,
+      pointBorderWidth: 2,
+      //data: [{% for data in Pagados_lista %} {{ data.total|floatformat:0 }}, {% endfor %}],
+      data: [1500,456,78,900,155,6666,1500,456,78,900,155,6666],
+    }
+    ,
+    {
+      type: 'bar',
+      label: "Proyectado",
+      lineTension: 0.3,
+      backgroundColor: "rgba(255, 53, 69, 0.2)", // Cambiar a rojo (danger)
+      borderColor: "rgba(255, 53, 69, 1)", // Cambiar a rojo (danger)
+      pointRadius: 3,
+      pointBackgroundColor: "rgba(255, 53, 69, 0.2)", // Cambiar a rojo (danger)
+      pointBorderColor: "rgba(255, 53, 69, 1)", // Cambiar a rojo (danger)
+      pointHoverRadius: 3,
+      pointHoverBackgroundColor: "rgba(255, 53, 69, 1)", // Cambiar a rojo (danger)
+      pointHoverBorderColor: "rgba(255  , 53, 69, 0.2)", // Cambiar a rojo (danger)
+      pointHitRadius: 10,
+      pointBorderWidth: 1,
+      data:[1500,456,78,900,155,6666,1500,456,78,900,155,6666],
+    }]
+  };
+  
+  // Configuración del gráfico
+  const opciones = {
+      scales: {
+          y: {
+              beginAtZero: true
+          }
+      }
+  };
+  
+  // Obtén el contexto del lienzo (canvas)
+  const ctx = document.getElementById('Grafico_gastos_por_mes_barras').getContext('2d');
+  
+  // Crea el gráfico de barras
+  const grafico = new Chart(ctx, {
+      type: 'bar',
+      data: datos,
+      options: opciones
+  });
+</script>
+  
+  
+{% endblock %}
