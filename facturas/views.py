@@ -50,9 +50,11 @@ def facturas(request):
     #filtra por proveedor, por factura y por facturas autorizadas y no autorizadas
     facturas = filtrar(request)
 
+    grupos_usuario = request.user.groups.values_list('name', flat=True)
+
     #Listado de proveedores y facturas sin repetidos
-    proveedores = factura.objects.values_list('proveedor', flat=True).distinct()
-    nroFacturas = factura.objects.values_list('nroFactura', flat=True).distinct()
+    proveedores = factura.objects.filter(codigo__CODIGO__in=grupos_usuario).values_list('proveedor', flat=True).distinct().order_by('proveedor')
+    nroFacturas = factura.objects.filter(codigo__CODIGO__in=grupos_usuario).values_list('nroFactura', flat=True).distinct()
     
     cantidad_facturas_pendientes = facturas.count()
 
