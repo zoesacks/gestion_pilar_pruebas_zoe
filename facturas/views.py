@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
-from .models import factura, codigoUsado, codigoAprobacion, ordenDePago
+from .models import Factura, CodigoUsado, CodigoAprobacion, OrdenDePago
 from administracion.models import codigoFinanciero
 from contaduria.models import proyeccionGastos
 from django.utils import timezone
@@ -13,17 +13,18 @@ from administracion.gestion_pases import contaduria_required
 from django.contrib.auth.models import User
 import json
 from decimal import Decimal
+from django.db.models import F
 
 meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 codigoIngresado = ""
 
 @contaduria_required
 def detalleFactura(request, factura_detalle_id):
-    factura_detalle = factura.objects.get(pk=factura_detalle_id)
+    factura_detalle = Factura.objects.get(pk=factura_detalle_id)
     op = None
 
-    if ordenDePago.objects.filter(nroFactura = factura_detalle.nroFactura, proveedor = factura_detalle.proveedor).exists():
-        op = ordenDePago.objects.get(nroFactura = factura_detalle.nroFactura, proveedor = factura_detalle.proveedor)
+    if OrdenDePago.objects.filter(nro_factura = factura_detalle.nro_factura, proveedor = factura_detalle.proveedor).exists():
+        op = OrdenDePago.objects.get(nro_factura = factura_detalle.nro_factura, proveedor = factura_detalle.proveedor)
 
 
     totalDisponible = obtenerDineroDisponible(factura_detalle.codigo.CODIGO)
@@ -53,17 +54,19 @@ def facturas(request):
     grupos_usuario = request.user.groups.values_list('name', flat=True)
 
     #Listado de proveedores y facturas sin repetidos
-    proveedores = factura.objects.filter(codigo__CODIGO__in=grupos_usuario).values_list('proveedor', flat=True).distinct().order_by('proveedor')
-    nroFacturas = factura.objects.filter(codigo__CODIGO__in=grupos_usuario).values_list('nroFactura', flat=True).distinct()
+    proveedores = Factura.objects.filter(codigo__CODIGO__in=grupos_usuario).values_list('proveedor', flat=True).distinct().order_by('proveedor')
+    nroFacturas = Factura.objects.filter(codigo__CODIGO__in=grupos_usuario).values_list('nro_factura', flat=True).distinct()
     
-    cantidad_facturas_pendientes = facturas.count()
+    cantidad_facturas_pendientes = len(facturas) or 0
 
     montoCodigoAprobacion =  0
     
     if request.method == 'POST':
         #cambio el estado de una sola factura
         if 'factura_button_id' in request.POST:
-            autorizarFactura(request)
+            #obtengo el id del que se apreto el boton para marcar como Autorizado
+            factura_id = request.POST.get('factura_button_id')
+            autorizarFactura(request, factura_id)
 
         #cambio el estado de una sola factura
         if 'factura_desautorizar' in request.POST:
@@ -83,7 +86,7 @@ def facturas(request):
             montoCodigoAprobacion = obtenerMontoCodigo(request) or 0
 
         if 'ingresarCodigoMod' in request.POST:
-            montoCodigoAprobacion = obtenerMontoCodigoModal(request) or 0
+            montoCodigoAprobacion = obtenerMontoCodigo(request) or 0
 
     totalDisponibleConCodigo = {}
     totalDisponible = {}
@@ -106,6 +109,7 @@ def facturas(request):
     # Agrega el parámetro "page" para obtener la página deseada (por ejemplo, ?page=2)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
+        
     
     context = {
         'page' : page,
@@ -123,14 +127,14 @@ def facturas(request):
 
 
 def filtrar(request):
-    facturas = factura.objects.all()
+    facturas = Factura.objects.all()
 
     #grupo = request.user.groups.first()
     grupos_usuario = request.user.groups.values_list('name', flat=True)
 
-    facturas = facturas.filter(codigo__CODIGO__in=grupos_usuario, estado = 'Pendiente')
-    #facturas = facturas.filter(codigo__CODIGO = grupo)
-
+    #Agarro las facturas devengadas que no esten autorizadas
+    facturas = facturas.filter(codigo__CODIGO__in=grupos_usuario)
+    facturas = [factura for factura in facturas if factura.estado == "Devengado" and factura.autorizado == False]
     # Obtener los parámetros de los filtros (si están presentes)
     fecha_desde = request.GET.get('fecha_desde')
     fecha_hasta = request.GET.get('fecha_hasta')
@@ -139,17 +143,28 @@ def filtrar(request):
     verFacturas = request.GET.get('verFacturas')
     
     if verFacturas:
+        facturas = Factura.objects.filter(codigo__CODIGO__in=grupos_usuario)
+
+        if verFacturas == "pendientes":
+            facturas = [factura for factura in facturas if factura.estado == "Pendiente"]
+    
         if verFacturas == "autorizadas":
-            facturas = factura.objects.filter(codigo__CODIGO__in=grupos_usuario, estado = 'Autorizado')
+            facturas = [factura for factura in facturas if factura.estado == "Devengado" and factura.autorizado == True]
 
+        if verFacturas == "noAutorizadas": 
+            facturas = [factura for factura in facturas if factura.estado == "Devengado" and factura.autorizado == False]
+           
         if verFacturas == "op":
-            facturas = factura.objects.filter(codigo__CODIGO__in=grupos_usuario, estado = 'OP')
+            facturas = [factura for factura in facturas if factura.estado == "OP"]
 
-        if verFacturas == "pendientes": 
-            facturas = factura.objects.filter(codigo__CODIGO__in=grupos_usuario, estado = 'Pendiente')
+        if verFacturas == "pagoParcial": 
+            facturas = [factura for factura in facturas if factura.estado == "Pagos parciales" or factura.estado == "Pagos parciales"]
+
+        if verFacturas == "pagadas": 
+            facturas = [factura for factura in facturas if factura.estado == "Pagada" or factura.estado == "Pagos parciales"]
 
         if verFacturas == "todas":
-            facturas = factura.objects.filter(codigo__CODIGO__in=grupos_usuario)
+            facturas = Factura.objects.filter(codigo__CODIGO__in=grupos_usuario)
 
     # Aplicar los filtros si están presentes
     if fecha_desde and fecha_hasta:
@@ -165,7 +180,7 @@ def filtrar(request):
 
     if facturas_seleccionadas:
         #filtrar por facturas
-        facturas = facturas.filter(nroFactura__in = facturas_seleccionadas)
+        facturas = facturas.filter(nro_factura__in = facturas_seleccionadas)
 
     return facturas
 
@@ -175,22 +190,9 @@ def obtenerMontoCodigo(request):
 
     montoCodigoAprobacion = 0
 
-    if codigoAprobacion.objects.filter(codigoApro = codigoIngresado).exists():  
-        montoCodigoAprobacion = codigoAprobacion.objects.get(codigoApro = codigoIngresado).monto or 0
-        totalUsado = codigoUsado.objects.filter(codigo__codigoApro = codigoIngresado).aggregate(total=Sum('montoUsado'))['total'] or 0
-        montoCodigoAprobacion -= totalUsado
-
-
-    return float(round(montoCodigoAprobacion, 2))
-
-def obtenerMontoCodigoModal(request):
-    global codigoIngresado
-    codigoIngresado = request.POST.get('codigoAutorizacionMod')
-    montoCodigoAprobacion = 0
-
-    if codigoAprobacion.objects.filter(codigoApro = codigoIngresado).exists():  
-        montoCodigoAprobacion = codigoAprobacion.objects.get(codigoApro = codigoIngresado).monto or 0
-        totalUsado = codigoUsado.objects.filter(codigo__codigoApro = codigoIngresado).aggregate(total=Sum('montoUsado'))['total'] or 0
+    if CodigoAprobacion.objects.filter(codigo_apro = codigoIngresado).exists():  
+        montoCodigoAprobacion = CodigoAprobacion.objects.get(codigo_apro = codigoIngresado).monto or 0
+        totalUsado = CodigoUsado.objects.filter(codigo__codigoApro = codigoIngresado).aggregate(total=Sum('monto_usado'))['total'] or 0
         montoCodigoAprobacion -= totalUsado
 
     return float(round(montoCodigoAprobacion, 2))
@@ -199,18 +201,16 @@ def obtenerDineroDisponible(codigo):
 
     totalUsado = 0
 
-    #obtengo el total de dinero que se uso con los codigoAprobacion
-    codigosUsados = codigoUsado.objects.filter(codigoFinanciero__CODIGO = codigo, fecha__month = ExtractMonth(timezone.now()))
-    totalUsado = codigosUsados.aggregate(total=Sum('montoUsado'))['total'] or 0
-
-    
+    #obtengo el total de dinero que se uso con los CodigoAprobacion
+    codigosUsados = CodigoUsado.objects.filter(codigo_financiero__CODIGO = codigo, fecha__month = ExtractMonth(timezone.now()))
+    totalUsado = codigosUsados.aggregate(total=Sum('monto_usado'))['total'] or 0
 
     #obtengo el dinero disponible del mes
     proyeccion = proyeccionGastos.objects.filter(CODIGO=codigo, MES = datetime.datetime.now().month, EJERCICIO = datetime.datetime.now().year)
     totalDisponible = proyeccion.aggregate(total=Sum('IMPORTE'))['total'] or 0
 
     #obtengo el dinero total de las facturas autorizadas del mes
-    facturasAutorizadas = factura.objects.filter(codigo__CODIGO=codigo, autorizado_fecha__month = ExtractMonth(timezone.now())).exclude(estado = 'Pendiente')
+    facturasAutorizadas = Factura.objects.filter(codigo__CODIGO=codigo, autorizado_fecha__month = ExtractMonth(timezone.now()))
     totalFacturasAutorizadas = facturasAutorizadas.aggregate(total=Sum('total'))['total'] or 0
 
     totalDisponible = float(round(totalDisponible - totalFacturasAutorizadas  + totalUsado, 2))
@@ -218,82 +218,53 @@ def obtenerDineroDisponible(codigo):
     return totalDisponible
 
 def autorizarSelccionados(request):
-        #obtengo lista de todos los que se hicieron check
+    #obtengo lista de todos los que se hicieron check
     facturas_check_id = request.POST.getlist('facturas_check_id')
 
-    for factura_check_id in facturas_check_id:
-        factura_selec = factura.objects.get(pk=factura_check_id)
-        factura_selec.autorizado_por = request.user.username
-        factura_selec.autorizado_fecha = timezone.now() - timezone.timedelta(hours=3)
-        factura_selec.estado = 'Autorizado'
-
-        codigo = factura_selec.codigo.CODIGO
-        
-        if obtenerDineroDisponible(codigo) < factura_selec.total:
-
-            global codigoIngresado
-            #agrego los datos de quien uso el codigo
-            codigoU = codigoUsado()
-            codigoU.codigo = codigoAprobacion.objects.get(codigoApro = codigoIngresado) 
-            codigoU.factura = factura_selec
-            codigoU.codigoFinanciero = codigoFinanciero.objects.get(CODIGO = codigo)
-            codigoU.montoUsado  = float(factura_selec.total) - obtenerDineroDisponible(codigo)
-            codigoU.usuario = request.user.username
-            codigoU.fecha = timezone.now() - timezone.timedelta(hours=3)
-
-            codigoU.save()
-
-        factura_selec.save()
+    for factura_id in facturas_check_id:
+        autorizarFactura(request, factura_id)
             
     return redirect('facturas')
 
 def desautorizarFactura(request):
-
     #obtengo el id del que se apreto el boton para marcar como Autorizado
     factura_desautorizar = request.POST.get('factura_desautorizar')
 
-    factura_selec = factura.objects.get(pk=factura_desautorizar)
-    factura_selec.autorizado_por = None
-    factura_selec.autorizado_fecha = None
-    factura_selec.estado = 'Pendiente'
+    factura_selec = Factura.objects.get(pk=factura_desautorizar)
+    factura_selec.desautorizar()
 
-    if codigoUsado.objects.filter(factura = factura_selec).exists():
-        codigosUsados = codigoUsado.objects.filter(factura = factura_selec)
-
+    if CodigoUsado.objects.filter(factura = factura_selec).exists():
+        codigosUsados = CodigoUsado.objects.filter(factura = factura_selec)
         for codigo in codigosUsados:
             codigo.delete()
             
-    factura_selec.save()
     return redirect('facturas')
 
-def autorizarFactura(request):
-
-    #obtengo el id del que se apreto el boton para marcar como Autorizado
-    factura_button_id = request.POST.get('factura_button_id')
-
-    factura_selec = factura.objects.get(pk=factura_button_id)
-    factura_selec.autorizado_por = request.user.username
-    factura_selec.autorizado_fecha = timezone.now() - timezone.timedelta(hours=3)
-    factura_selec.estado = 'Autorizado'
+def autorizarFactura(request, factura_id):
+    factura_selec = Factura.objects.get(pk=factura_id)
+    usuario = request.user.username
+    fecha = timezone.now() - timezone.timedelta(hours=3)
+    factura_selec.autorizar(usuario, fecha)
     
     codigo = factura_selec.codigo.CODIGO
-
     totalDisponible = obtenerDineroDisponible(codigo)
 
     if totalDisponible < factura_selec.total:
-        global codigoIngresado
-        
-        #agrego los datos de quien uso el codigo
-        codigoU = codigoUsado()
-        codigoU.codigo = codigoAprobacion.objects.get(codigoApro = codigoIngresado) 
-        codigoU.factura = factura_selec
-        codigoU.codigoFinanciero = factura_selec.codigo
-        codigoU.montoUsado  = float(factura_selec.total) - totalDisponible
-        codigoU.usuario = request.user.username
-        codigoU.fecha = timezone.now() - timezone.timedelta(hours=3)
-
-        codigoU.save()
-    
-    factura_selec.save()
+        monto_usado = float(factura_selec.total) - totalDisponible
+        guardarCodigoUsado(factura_selec, monto_usado)
 
     return redirect('facturas')
+
+def guardarCodigoUsado(request, factura_selec, monto_usado):
+    global codigoIngresado
+        
+    #agrego los datos de quien uso el codigo
+    codigoU = CodigoUsado()
+    codigoU.codigo = CodigoAprobacion.objects.get(codigo_apro = codigoIngresado) 
+    codigoU.factura = factura_selec
+    codigoU.codigo_financiero = factura_selec.codigo
+    codigoU.monto_usado = monto_usado
+    codigoU.usuario = request.user.username
+    codigoU.fecha = timezone.now() - timezone.timedelta(hours=3)
+
+    codigoU.save()

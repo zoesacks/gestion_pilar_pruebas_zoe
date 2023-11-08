@@ -18,6 +18,7 @@
 <input type="hidden" name="fecha_hasta" value="{{ fecha_hasta }}">
 
 <!-- Ventana emergente (modal) para el formulario avanzado -->
+
 <div class="modal fade" id="filtroAvanzadoModal" tabindex="-1" role="dialog" aria-labelledby="filtroAvanzadoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
@@ -33,40 +34,23 @@
                     </button>
                 </div>
         
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: calc(100vh - 200px); overflow-y: auto;">
                     <!-- formulario -->
         
-                    <div class="row p-3">
-                        <div class="btn-group" data-toggle="buttons">
-                            <div class="col-4 m-1">
-                                <label class="btn btn-outline-primary w-100">
-                                    <input type="radio" name="verFacturas" value="pendientes" id="pendientes"
-                                        style="appearance: none; -webkit-appearance: none;"> Ver facturas pendientes
-                                </label>
-                            </div>
-                            <div class="col-4 m-1">
-                                <label class="btn btn-outline-primary w-100">
-                                    <input type="radio" name="verFacturas" value="autorizadas" id="autorizadas"
-                                        style="appearance: none; -webkit-appearance: none;"> Ver facturas autorizadas
-                                </label>
-                            </div>
-                            <div class="col-4 m-1">
-                                <label class="btn btn-outline-primary w-100">
-                                    <input type="radio" name="verFacturas" value="op" id="todas"
-                                        style="appearance: none; -webkit-appearance: none;"> Ver facturas con OP
-                                </label>
-                            </div>
-                            <div class="col-4 m-1" style="display: none;">
-                                <label class="btn btn-outline-primary w-100">
-                                    <input type="radio" name="verFacturas" value="todas" id="todas-hidden" style="display: none;" checked> Todas
-                                </label>
-                            </div>
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <label for="verFacturas"><b class="text-primary">Ver facturas:</b></label>
+                            <select id="verFacturas" name="verFacturas" class="form-control">
+                                <option value="pendientes">Pendientes</option>
+                                <option value="noAutorizadas">Devengadas no autorizadas</option>
+                                <option value="autorizadas">Devengadas autorizadas</option>
+                                <option value="op">Con orden de pago</option>
+                                <option value="pagoParcial">Pagadas Parcial</option>
+                                <option value="pagadas">Pagadas</option>
+                                <option value="todas" selected>Todas</option>
+                            </select>
                         </div>
-                        
-                        
-                    </div>
-        
-                    <div class="row">
+
                         <div class="col-6">
         
                             <!--FILTRO FECHA-->
@@ -83,7 +67,12 @@
                                     <input type="date" id="fecha_hasta" name="fecha_hasta" class="form-control">
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                    
         
+                    <div class="row">
+                        <div class="col-6">
         
                             <!--FILTRO PROVEEDOR-->
                             <div class="row">
@@ -97,21 +86,16 @@
                                         placeholder="Buscar proveedor...">
                                 </div>
                                 <div class="col-6">
-        
                                     <label for="factura" style="margin-top: 20px;">
                                         <p><b class="text-primary">Facturas</b></p>
                                         <small class="text-primary font-italic">(Pres. Ctrl para seleccionar más de uno)</small>
                                     </label>
                                     <input type="text" id="buscador_facturas" class="form-control" placeholder="Buscar factura...">
                                 </div>
-                            </div>
-        
-                            <div class="row">
-        
+
                                 <div class="col-6">
                                     <!-- lista de proveedores -->
-                                    <select id="proveedor" name="proveedor" class="form-control" multiple
-                                        style="font-size: small;margin-top: 15px; height: 280px; resize: vertical; max-height: 500px;">
+                                    <select id="proveedor" name="proveedor" class="form-control" multiple style="font-size: small;margin-top: 15px; height: 280px; resize: vertical; max-height: 500px; overflow-x: scroll;">
                                         {% for proveedor in proveedores %}
                                         <option value="{{ proveedor }}">{{ proveedor }}</option>
                                         {% endfor %}
@@ -121,8 +105,7 @@
                                 <div class="col-6">
         
                                     <!-- lista de facturas -->
-                                    <select id="nroFactura" name="nroFactura" class="form-control" multiple
-                                        style="font-size: small;margin-top: 15px; height: 280px; resize: vertical; max-height: 500px;">
+                                    <select id="nroFactura" name="nroFactura" class="form-control" multiple style="font-size: small;margin-top: 15px; height: 280px; resize: vertical; max-height: 500px; overflow-x: scroll;">
                                         {% for nroFactura in nroFacturas %}
                                         <option value="{{ nroFactura }}">{{ nroFactura }}</option>
                                         {% endfor %}
@@ -400,6 +383,8 @@
                                             <th class="text-center text-uppercase">Nro factura</th>
                                             <th class="text-center text-uppercase">Proveedor</th>
                                             <th class="text-center text-uppercase">FF</th>
+                                            <th class="text-center text-uppercase">Unidad ejecutora</th>
+                                            <th class="text-center text-uppercase">Estado</th>
                                             <th class="text-center text-uppercase">Importe</th>
                                             <th></th>
 
@@ -408,17 +393,19 @@
                                     <tbody>
                                         {% for factura in page %}
                                         <tr>
-                                            {% if factura.estado == 'Pendiente' %}
+                                            {% if factura.estado == 'Devengado' and factura.autorizado == False %}
                                                 <td class="text-center p-3">
-                                                    <input type="checkbox" name="facturas_check_id" value="{{ factura.id }}" data-nro="{{ factura.nroFactura }}" data-total="{{ factura.total }}"  data-proveedor="{{ factura.proveedor}}" data-codigo="{{ factura.codigo.CODIGO }}">
+                                                    <input type="checkbox" name="facturas_check_id" value="{{ factura.id }}" data-nro="{{ factura.nro_factura }}" data-total="{{ factura.total }}"  data-proveedor="{{ factura.proveedor}}" data-codigo="{{ factura.codigo.CODIGO }}">
                                                 </td>
                                             {% else %}
                                                 <td class="text-center p-3"></td>
                                             {% endif %}
                                             <td style="width: 130px;">{{ factura.codigo.CODIGO }}</td>
-                                            <td style="width: 130px;">📅{{ factura.nroFactura }}</td>
+                                            <td style="width: 130px;">📅{{ factura.nro_factura }}</td>
                                             <td>{{ factura.proveedor }}</td>
                                             <td>{{ factura.ff }}</td>
+                                            <td>{{factura.unidad_ejecutora}}</td>
+                                            <td>{{factura.estado}}</td>
                                             <td>💵{{factura.total|intcomma}}</td>
                                             <td style="display: none;" id="total_factura_{{ factura.id }}">{{factura.total}}</td>
                                             <td style="width: 150px;">
@@ -430,31 +417,34 @@
                                                     </div>
 
                                                     <div class="col-6">
-                                                        {% if factura.estado == 'Pendiente' %}
+                                                        {% if factura.estado == 'Devengado' %}
 
-                                                            {% for codigo, totalDisponible in totalDisponibleConCodigo.items %}
+                                                            {%if factura.autorizado == False %}
 
-                                                                {% if codigo == factura.codigo.CODIGO %}
-                                                                    {% if factura.total < totalDisponible %}
-                                                                        <button type="submit" class="btn btn-success" name="factura_button_id" value="{{ factura.id }}">
-                                                                            <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">
-                                                                        </button>
-                                                                            
-                                                                    {% else %}
-                                                                        <button type="button" class="btn btn-secondary error-button" >
-                                                                            <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">
-                                                                        </button>
+                                                                {% for codigo, totalDisponible in totalDisponibleConCodigo.items %}
 
+                                                                    {% if codigo == factura.codigo.CODIGO %}
+                                                                        {% if factura.total < totalDisponible %}
+                                                                            <button type="submit" class="btn btn-success" name="factura_button_id" value="{{ factura.id }}">
+                                                                                <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">
+                                                                            </button>
+                                                                                
+                                                                        {% else %}
+                                                                            <button type="button" class="btn btn-secondary error-button" >
+                                                                                <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">
+                                                                            </button>
+
+                                                                        {% endif %}
                                                                     {% endif %}
-                                                                {% endif %}
 
-                                                            {% endfor %}
+                                                                {% endfor %}
 
-                                                        {% elif factura.estado == 'Autorizado'%}
-                                                            <button type="submit" class="btn btn-danger botonFactura" name="factura_desautorizar" value="{{ factura.id }}" style="display: none">
-                                                                <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">
-                                                            </button>         
-                                                            <div class="fecha-auto" data-fecha-auto="{{ factura.autorizado_fecha }}"></div> 
+                                                            {% else%}
+                                                                <button type="submit" class="btn btn-danger botonFactura" name="factura_desautorizar" value="{{ factura.id }}" style="display: none">
+                                                                    <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">
+                                                                </button>         
+                                                                <div class="fecha-auto" data-fecha-auto="{{ factura.autorizado_fecha }}"></div> 
+                                                            {% endif %}
                                                             
                                                         {% endif %}
                                                     </div>

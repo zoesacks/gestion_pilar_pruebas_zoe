@@ -2,110 +2,164 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from administracion.models import codigoFinanciero
 
-class factura(models.Model):
-    estado_choice = (
-        ('Pendiente', 'Pendiente'),
-        ('Autorizado', 'Autorizado'),
-        ('OP', 'OP'),
-    )
+class Factura(models.Model):
+    #CAMPOS OBLIGATORIOS
+    nro_factura = models.CharField(max_length = 255, blank=True, null = False)
+    proveedor = models.CharField(max_length = 255, blank=True, null = False)
+    total = models.DecimalField(max_digits=15, decimal_places=2, default=0, blank=True, null = False)
+    codigo = models.ForeignKey(codigoFinanciero, on_delete=models.CASCADE, blank=True, null = False)
 
-    autorizado_por = models.CharField(max_length=255, blank=True, null=True)
-    autorizado_fecha = models.DateTimeField(blank=True, null=True)
+    #CAMPOS NO OBLIGATORIOS
     emision = models.DateField(blank=True, null = True)
     alta = models.DateField(blank=True, null = True)
-    codigo = models.ForeignKey(codigoFinanciero, on_delete=models.CASCADE, blank=True, null=True)
-    nroFactura = models.CharField(max_length = 255, blank=True, null = True)
-    proveedor = models.CharField(max_length = 255, blank=True, null = True)
     oc = models.CharField(max_length = 255, blank=True, null = True)
-    total = models.DecimalField(max_digits=15, decimal_places=2, default=0, blank=True, null = True )
     ff = models.CharField(max_length = 255, blank=True, null = True)
-    unidadEjecutora = models.CharField(max_length = 255, blank=True, null = True)
+    unidad_ejecutora = models.CharField(max_length = 255, blank=True, null = True)
     objeto = models.CharField(max_length = 255, blank=True, null = True)
-    fondoAfectado = models.CharField(max_length = 255, blank=True, null = True)
-    estado = models.CharField(max_length=20, choices=estado_choice, default='Pendiente')
+    fondo_afectado = models.CharField(max_length = 255, blank=True, null = True)
+    ubicacion = models.CharField(max_length = 255, blank=True, null = True)
+
+    #CAMPOS PARA MANEJO DE AUTORIZACION
+    devengado = models.BooleanField(default=False)
+    autorizado = models.BooleanField(default=False)
+    autorizado_por = models.CharField(max_length=255, blank=True, null=True)
+    autorizado_fecha = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
-        return f'Nro factura: {self.nroFactura}'
+        return f'Nro Factura: {self.nro_factura}'
 
     class Meta:
-        verbose_name = 'factura'
+        verbose_name = 'Factura'
         verbose_name_plural ='Facturas' 
-
-    def clean(self):
-
-        if not self.codigo:  
-            raise ValidationError("El campo codigo no puede estar vacío.")
-
-        if not self.nroFactura:
-            raise ValidationError("El campo nro de factura no puede estar vacío.")
-                          
-        if not self.proveedor:
-            raise ValidationError("El campo proveedor no puede estar vacío.")
-
-        if not self.total:
-            raise ValidationError("El campo total no puede estar vacío.")
-
-        super().clean()
-
 
     def save(self, *args, **kwargs):
         if self.existe():
-            # Si ya existe una factura con los mismos datos, no la guardes
+            # Si ya existe una Factura con los mismos datos, no la guardes
             return
+        
         else:
             self.proveedor = str(self.proveedor).strip()
-            self.nroFactura = str(self.nroFactura).strip()
+            self.nro_factura = str(self.nro_factura).strip()
 
-        super(factura, self).save(*args, **kwargs)
+        super(Factura, self).save(*args, **kwargs)
 
     def existe(instance):
-        return factura.objects.filter(proveedor=instance.proveedor, nroFactura=instance.nroFactura).exclude(pk=instance.pk).exists()
+        return Factura.objects.filter(proveedor=instance.proveedor, nro_factura=instance.nro_factura).exclude(pk=instance.pk).exists()
+
+    def autorizar(self, usuario, fecha):
+        self.autorizado = True
+        self.autorizado_por = usuario
+        self.autorizado_fecha = fecha
+        self.save()
+
+    def desautorizar(self):
+        self.autorizado = False
+        self.autorizado_por = None
+        self.autorizado_fecha = None
+        self.save()
+
+    @property
+    def estado(self):
+        ordenesPagadas = OrdenDePago.objects.filter(nro_factura=self.nro_factura,proveedor=self.proveedor, pagado = True)
+        print(f'pagadas {ordenesPagadas}')
+        ordenesNoPagadas = OrdenDePago.objects.filter(nro_factura=self.nro_factura,proveedor=self.proveedor, pagado = False)
+        print(f'no pagadas {ordenesNoPagadas}')  
+        if ordenesPagadas:
+            subtotal = 0
+            for orden in ordenesPagadas:
+                subtotal += orden.total
+
+            if subtotal == self.total:
+                return "Pagada"
+                    
+            elif subtotal < self.total and subtotal > 0:
+                return "Pagos parciales"
+                    
+        elif ordenesNoPagadas:
+            return "OP"
+                    
+        else:
+            if self.devengado == True:
+                return "Devengado"
+        
+            else:
+                return "Pendiente"
 
 
-class ordenDePago(models.Model):
-    op = models.CharField(max_length = 255, blank=True, null = True)
+class OrdenDePago(models.Model):
+    #CAMPOS OBLIGATORIOS
+    op = models.CharField(max_length=255, blank=True, null=False)
+    nro_factura = models.CharField(max_length=255, blank=True, null=False)
+    proveedor = models.CharField(max_length=255, blank=True, null=False)
+    total = models.DecimalField(default=0, max_digits=25, decimal_places=2, blank=True, null=False)
+    pagado = models.BooleanField(default=False)
+
+    #OTROS CAMPOS
     fechaOp = models.DateField(blank=True, null = True)
-    nroFactura = models.CharField(max_length = 255, blank=True, null = True)
-    proveedor = models.CharField(max_length = 255, blank=True, null = True)
+
+    def __str__(self):
+        return f'Orden de pago: {self.op}'
+
+    class Meta:
+        verbose_name = 'orden de pago'
+        verbose_name_plural ='Ordenes de pago' 
 
     def save(self, *args, **kwargs):
         
         self.proveedor = str(self.proveedor).strip()
-        self.nroFactura = str(self.nroFactura).strip()
+        self.nro_factura = str(self.nro_factura).strip()
 
         try:
-            #print(f'Filtrando proveedor: {self.proveedor} factura {self.nroFactura}')
 
-            fact = str(self.nroFactura).strip()
+            fact = str(self.nro_factura).strip()
             prove = str(self.proveedor).strip()
         
-            facturaOp = factura.objects.get(nroFactura=fact, proveedor=prove)
+            facturaOp = Factura.objects.get(nro_factura=fact, proveedor=prove)
 
-
-            if facturaOp.estado in ['Pendiente', 'Autorizado']:
-                
-                facturaOp.estado = 'OP'
-                facturaOp.autorizado_fecha = self.fechaOp
-                #facturaOp.auto
-                facturaOp.save()
+            usuario = "Autorizacion automatica"
+            fecha = self.fechaOp
+            
+            facturaOp.autorizar(usuario, fecha)
 
         except ObjectDoesNotExist:
-            # La factura no existe, puedes manejarlo de acuerdo a tus necesidades
-            # Por ejemplo, imprimir un mensaje de registro
-            print("La factura no existe.")
+            print("La Factura no existe.")
+        
+        super(OrdenDePago, self).save(*args, **kwargs)
+
+
+class CodigoAprobacion(models.Model):
+    #CAMPOS OBLIGATORIOS
+    codigo_apro = models.CharField(max_length=255, blank=True, null=False)
+    monto = models.DecimalField(max_digits=15, decimal_places=2, default=0, blank=True, null=False)
+
+    def __str__(self):
+        return f'Codigo de aprobacion: {self.codigo_apro}'
+    
+    class Meta:
+        verbose_name = 'codigo de aprobacion'
+        verbose_name_plural ='Codigos de aprobacion' 
+        
+    def save(self, *args, **kwargs):
+        if CodigoAprobacion.objects.filter(codigo_apro = self.codigo_apro).exists():
+            raise ValidationError("El codigo ya existe.")
+        
+        super(CodigoAprobacion, self).save(*args, **kwargs)
         
 
-        super(ordenDePago, self).save(*args, **kwargs)
+class CodigoUsado(models.Model):
+    #CAMPOS OBLIGATORIOS
+    codigo = models.ForeignKey(CodigoAprobacion, on_delete=models.CASCADE, blank=True, null=False)
+    factura = models.ForeignKey(Factura, on_delete=models.CASCADE, blank=True, null=False)
+    codigo_financiero = models.ForeignKey(codigoFinanciero, on_delete=models.CASCADE, blank=True, null=False)
+    fecha = models.DateTimeField(blank=True, null=False)
+    monto_usado = models.DecimalField(max_digits=15, decimal_places=2, default=0, blank=True, null=False)
+    usuario = models.CharField(max_length=255, blank=True, null=False)
 
-class codigoAprobacion(models.Model):
-    codigoApro = models.CharField(max_length=255, blank=True, null=True)
-    monto = models.DecimalField(max_digits=15, decimal_places=2, default=0, blank=True, null=True)
-
-class codigoUsado(models.Model):
-    codigo = models.ForeignKey(codigoAprobacion, on_delete=models.CASCADE, blank=True, null=True)
-    factura = models.ForeignKey(factura, on_delete=models.CASCADE, blank=True, null=True)
-    codigoFinanciero = models.ForeignKey(codigoFinanciero, on_delete=models.CASCADE, blank=True, null=True)
-    fecha = models.DateTimeField(blank=True, null=True)
-    montoUsado = models.DecimalField(max_digits=15, decimal_places=2, default=0, blank=True, null=True)
-    usuario = models.CharField(max_length=255, blank=True, null=True)
+    def __str__(self):
+        return f'Codigo usado: {self.codigo}'
+    
+    class Meta:
+        verbose_name = 'codigo de usado'
+        verbose_name_plural ='Codigos de usados' 
+    
 

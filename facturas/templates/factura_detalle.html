@@ -23,7 +23,7 @@
                     <div class="row p-3">
 
                         <div class="col-8">
-                            <p><b class="text-primary text-uppercase">Numero de factura :&nbsp;&nbsp;</b>{{factura.nroFactura }}</p>
+                            <p><b class="text-primary text-uppercase">Numero de factura :&nbsp;&nbsp;</b>{{factura.nro_factura }}</p>
                             <p><b class="text-primary text-uppercase">Fecha de emision :&nbsp;&nbsp;</b>{{ factura.emision }}</p>
                             <p><b class="text-primary text-uppercase">Fecha de alta :&nbsp;&nbsp;</b>{{ factura.alta }}
                             </p>
@@ -33,8 +33,9 @@
                             </p>
                             <p><b class="text-primary text-uppercase">Fondo de financiamiento :&nbsp;&nbsp;</b>{{factura.ff }}</p>
                             <p><b class="text-primary text-uppercase">Objeto :&nbsp;&nbsp;</b>{{ factura.objeto }}</p>
-                            <p><b class="text-primary text-uppercase">Fondo afectado :&nbsp;&nbsp;</b>{{factura.fondoAfectado }}</p>
-                
+                            <p><b class="text-primary text-uppercase">Fondo afectado :&nbsp;&nbsp;</b>{{factura.fondo_afectado }}</p>
+                            <p><b class="text-primary text-uppercase">Ubicacion :&nbsp;&nbsp;</b>{{factura.ubicacion }}</p>
+                            <p><b class="text-primary text-uppercase">Estado :&nbsp;&nbsp;</b>{{factura.estado }}</p>
                         
                         </div>
                         <div class="col-4">
@@ -51,7 +52,7 @@
                                 <div class="container text-center card" style="border: white;">
                                     <div class="row" style="padding: 1vh;">
 
-                                        {% if factura.estado == "Pendiente" %}
+                                        {% if factura.estado == 'Devengado' and factura.autorizado == False %}
 
                                         <div class="col-6 mx-auto">
 
@@ -75,11 +76,13 @@
                                         </div>
 
                                         {% else %}
-                        
-                                            <div class="row">
-                                                <p class="text-uppercase"><b class="text-primary text-uppercase">Aprobado por :&nbsp;&nbsp;</b>{{ factura.autorizado_por}}</p>
-                                                <p class="text-uppercase"><b class="text-primary text-uppercase">Fecha de aprobación :&nbsp;&nbsp;</b>{{ factura.autorizado_fecha }}</p>
-                                            </div>
+
+                                            {% if factura.autorizado == True %}
+                                                <div class="row">
+                                                    <p class="text-uppercase"><b class="text-primary text-uppercase">Aprobado por :&nbsp;&nbsp;</b>{{ factura.autorizado_por}}</p>
+                                                    <p class="text-uppercase"><b class="text-primary text-uppercase">Fecha de aprobación :&nbsp;&nbsp;</b>{{ factura.autorizado_fecha }}</p>
+                                                </div>
+                                            {% endif %}
 
                                             {% if factura.estado == "OP" %}
                                                 <p><b class="text-primary text-uppercase">Orden de pago :&nbsp;&nbsp;</b>{{ ordenDePago.op }}</p>
