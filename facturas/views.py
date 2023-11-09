@@ -24,8 +24,7 @@ def detalleFactura(request, factura_detalle_id):
     op = None
 
     if OrdenDePago.objects.filter(nro_factura = factura_detalle.nro_factura, proveedor = factura_detalle.proveedor).exists():
-        op = OrdenDePago.objects.get(nro_factura = factura_detalle.nro_factura, proveedor = factura_detalle.proveedor)
-
+        op = OrdenDePago.objects.filter(nro_factura = factura_detalle.nro_factura, proveedor = factura_detalle.proveedor).first()
 
     totalDisponible = obtenerDineroDisponible(factura_detalle.codigo.CODIGO)
 
@@ -158,10 +157,10 @@ def filtrar(request):
             facturas = [factura for factura in facturas if factura.estado == "OP"]
 
         if verFacturas == "pagoParcial": 
-            facturas = [factura for factura in facturas if factura.estado == "Pagos parciales" or factura.estado == "Pagos parciales"]
+            facturas = [factura for factura in facturas if factura.estado == "Pagos parciales"]
 
         if verFacturas == "pagadas": 
-            facturas = [factura for factura in facturas if factura.estado == "Pagada" or factura.estado == "Pagos parciales"]
+            facturas = [factura for factura in facturas if factura.estado == "Pagada"]
 
         if verFacturas == "todas":
             facturas = Factura.objects.filter(codigo__CODIGO__in=grupos_usuario)
@@ -251,7 +250,7 @@ def autorizarFactura(request, factura_id):
 
     if totalDisponible < factura_selec.total:
         monto_usado = float(factura_selec.total) - totalDisponible
-        guardarCodigoUsado(factura_selec, monto_usado)
+        guardarCodigoUsado(request,factura_selec, monto_usado)
 
     return redirect('facturas')
 

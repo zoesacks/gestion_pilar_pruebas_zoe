@@ -1,0 +1,27 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center align-items-center" style="margin-top: 50;min-height: 70vh;">
+        <div class="col-md-6">
+            <div class="card pt-5">
+                <div class="card-body">
+                    <div class="row text-center">
+                        <h2 class="card-title text-center">Bienvenido a Gestion Pilar</h2>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 p-4" style="text-align: center;align-items: center;">
+                            <h1>Se ha cerrado su sesión.</h1>
+                            <br>
+                            <p>Para continuar debe <a href="/login/"> iniciar sesión</a></p>
+                        </div>
+                        <div class="col-6 align-items-center p-4">
+                            <img src="{% static 'assets/logo.png' %}" alt="Logo" class="img-fluid logo" style="max-height: 200px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

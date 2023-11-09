@@ -89,6 +89,15 @@
                                                 <p><b class="text-primary text-uppercase">Fecha:&nbsp;&nbsp;</b>{{ ordenDePago.fechaOp }}</p>
                                             {% endif %}
 
+                                            {% if factura.estado == "Pagada"%}
+
+                                                <p><b class="text-primary text-uppercase">Orden de pago :&nbsp;&nbsp;</b>{{ ordenDePago.op }}</p>
+                                                <!-- <p><b class="text-primary text-uppercase">Fecha:&nbsp;&nbsp;</b>{{ ordenDePago.fechaOp }}</p> -->
+                                                
+                                                <p><b class="text-primary text-uppercase">Reg. del Pagado :&nbsp;&nbsp;</b>{{ ordenDePago.registro_pagado }}</p>
+                                                <!-- <p><b class="text-primary text-uppercase">Fecha:&nbsp;&nbsp;</b>{{ ordenDePago.fechaOp }}</p> -->
+                                            {% endif %}
+
                                         {% endif %}
                                     </div>
 

@@ -99,7 +99,6 @@ class recurso(models.Model):
 class codigoFinanciero(models.Model):
     CODIGO = models.CharField(max_length=20,unique=True,null=False, blank=False)
     NOMBRE = models.CharField(max_length=255, null=True, blank=True)
-    
 
     def __str__(self):
         NAME = str(self.CODIGO) + " - " + str(self.NOMBRE)

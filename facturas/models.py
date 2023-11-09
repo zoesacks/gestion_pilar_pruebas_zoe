@@ -52,6 +52,13 @@ class Factura(models.Model):
         self.autorizado_fecha = fecha
         self.save()
 
+
+    def autorizar_automatica(self, usuario):
+        self.autorizado = True
+        self.autorizado_por = usuario
+        self.save()
+
+
     def desautorizar(self):
         self.autorizado = False
         self.autorizado_por = None
@@ -60,10 +67,9 @@ class Factura(models.Model):
 
     @property
     def estado(self):
-        ordenesPagadas = OrdenDePago.objects.filter(nro_factura=self.nro_factura,proveedor=self.proveedor, pagado = True)
-        print(f'pagadas {ordenesPagadas}')
-        ordenesNoPagadas = OrdenDePago.objects.filter(nro_factura=self.nro_factura,proveedor=self.proveedor, pagado = False)
-        print(f'no pagadas {ordenesNoPagadas}')  
+        ordenesPagadas = OrdenDePago.objects.filter(nro_factura=self.nro_factura, proveedor=self.proveedor, pagado = True)
+        ordenesNoPagadas = OrdenDePago.objects.filter(nro_factura=self.nro_factura, proveedor=self.proveedor, pagado = False)
+
         if ordenesPagadas:
             subtotal = 0
             for orden in ordenesPagadas:
@@ -90,6 +96,7 @@ class OrdenDePago(models.Model):
     #CAMPOS OBLIGATORIOS
     op = models.CharField(max_length=255, blank=True, null=False)
     nro_factura = models.CharField(max_length=255, blank=True, null=False)
+    registro_pagado = models.CharField(max_length=255, blank=True, null=True)
     proveedor = models.CharField(max_length=255, blank=True, null=False)
     total = models.DecimalField(default=0, max_digits=25, decimal_places=2, blank=True, null=False)
     pagado = models.BooleanField(default=False)
@@ -105,6 +112,9 @@ class OrdenDePago(models.Model):
         verbose_name_plural ='Ordenes de pago' 
 
     def save(self, *args, **kwargs):
+
+        if OrdenDePago.objects.filter(proveedor=self.proveedor, nro_factura=self.nro_factura).exclude(pk=self.pk).exists():
+            return
         
         self.proveedor = str(self.proveedor).strip()
         self.nro_factura = str(self.nro_factura).strip()
@@ -119,7 +129,7 @@ class OrdenDePago(models.Model):
             usuario = "Autorizacion automatica"
             fecha = self.fechaOp
             
-            facturaOp.autorizar(usuario, fecha)
+            facturaOp.autorizar(usuario,fecha)
 
         except ObjectDoesNotExist:
             print("La Factura no existe.")
@@ -148,9 +158,9 @@ class CodigoAprobacion(models.Model):
 
 class CodigoUsado(models.Model):
     #CAMPOS OBLIGATORIOS
-    codigo = models.ForeignKey(CodigoAprobacion, on_delete=models.CASCADE, blank=True, null=False)
-    factura = models.ForeignKey(Factura, on_delete=models.CASCADE, blank=True, null=False)
-    codigo_financiero = models.ForeignKey(codigoFinanciero, on_delete=models.CASCADE, blank=True, null=False)
+    codigo = models.ForeignKey(CodigoAprobacion, on_delete=models.CASCADE, blank=True, null=True)
+    factura = models.ForeignKey(Factura, on_delete=models.CASCADE, blank=True, null=True)
+    codigo_financiero = models.ForeignKey(codigoFinanciero, on_delete=models.CASCADE, blank=True, null=True,default="AFECTADO")
     fecha = models.DateTimeField(blank=True, null=False)
     monto_usado = models.DecimalField(max_digits=15, decimal_places=2, default=0, blank=True, null=False)
     usuario = models.CharField(max_length=255, blank=True, null=False)

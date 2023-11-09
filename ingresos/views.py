@@ -1,15 +1,19 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login,logout
 from django.contrib.auth.forms import AuthenticationForm
 from ingresos.models import base_contribuyentes,tabla_alicuotas
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_protect
 from servicios_generales.models import *
-from administracion.gestion_pases import ingresos_required,general_required
+from administracion.gestion_pases import ingresos_required,calculadora_tasas_required,servicios_generales_required
 
 def sin_acceso_view(request):
     return render(request, 'sin_acceso.html', { })
+
+def logout_view(request):
+    logout(request)
+    return redirect('login') 
 
 @csrf_protect
 def login_view(request):
@@ -59,7 +63,7 @@ def aplicaciones_ingresos(request):
 
     return render(request, 'aplicaciones_ingresos.html', context)
 
-@ingresos_required
+@calculadora_tasas_required
 def calculadora(request):  
 
     cuentas = base_contribuyentes.objects.all()
@@ -123,7 +127,7 @@ def calculadora(request):
     
     return render(request, 'calculadora.html', context)
 
-@ingresos_required
+@servicios_generales_required
 def serivicios_generales(request):  
 
     partidas = partida.objects.all()

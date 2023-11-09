@@ -8,7 +8,7 @@ from django.core.paginator import Paginator, Page
 from datetime import datetime
 import datetime
 from django.utils import timezone
-from administracion.gestion_pases import contaduria_required
+from administracion.gestion_pases import contaduria_required,solicitudes_pedido_required
 
 @contaduria_required
 def autorizar_solicitudes(request):
@@ -30,7 +30,7 @@ def autorizar_solicitudes(request):
     return redirect('solicitudes')  # Redirige nuevamente a la lista de solicitudes
 
 
-@contaduria_required
+@solicitudes_pedido_required
 def detalle_solicitud(request):
     
     if request.method == "POST":
@@ -74,7 +74,7 @@ def detalle_solicitud(request):
     return HttpResponse("Error al cargar los detalles de la solicitud")
 
 
-@contaduria_required
+@solicitudes_pedido_required
 def solicitudes_list(request):
 
 

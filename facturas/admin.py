@@ -74,7 +74,7 @@ class FacturaAdmin(ImportExportModelAdmin):
 @admin.register(OrdenDePago)
 class OrdenDePagoAdmin(ImportExportModelAdmin):
         resource_class = ordenDePagoResource
-        list_display = ('nro_factura', 'proveedor', 'op','total')
+        list_display = ('nro_factura', 'proveedor', 'op','registro_pagado','total')
         list_filter = ('nro_factura', 'proveedor', 'op')
 
 @admin.register(CodigoAprobacion)

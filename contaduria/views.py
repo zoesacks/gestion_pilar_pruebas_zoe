@@ -1,8 +1,9 @@
 from django.shortcuts import render
-from administracion.gestion_pases import contaduria_required
 from contaduria.models import *
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models import Sum
+from administracion.gestion_pases import contaduria_required,redeterminaciones_required,ingresos_required,gastos_required,prestamos_required
+
 
 @contaduria_required
 def aplicaciones_contaduria(request):
@@ -12,7 +13,7 @@ def aplicaciones_contaduria(request):
         }
     return render(request, 'aplicaciones_contaduria.html', context)
 
-@contaduria_required
+@redeterminaciones_required
 def aplicaciones_redeterminaciones(request):
 
     context = {
@@ -20,7 +21,7 @@ def aplicaciones_redeterminaciones(request):
         }
     return render(request, 'aplicaciones_redeterminaciones.html', context)
 
-@contaduria_required
+@ingresos_required
 def ingresos_contaduria(request):
 
     context = {
@@ -28,7 +29,7 @@ def ingresos_contaduria(request):
         }
     return render(request, 'ingresos_contaduria.html', context)
 
-@contaduria_required
+@gastos_required
 def gastos_contaduria(request):
 
     context = {
@@ -36,7 +37,7 @@ def gastos_contaduria(request):
         }
     return render(request, 'gastos_contaduria.html', context)
 
-@contaduria_required
+@gastos_required
 def asientos_gastos(request):
 
     #gastos_query = asientosGastos.objects.all().filter(Fecha__year=2023).order_by('Fecha')
@@ -85,7 +86,7 @@ def asientos_gastos(request):
     
     return render(request, 'asientosgastos.html', context)
 
-@contaduria_required
+@gastos_required
 def proyeccion_gastos(request):
 
     context = {
@@ -94,7 +95,7 @@ def proyeccion_gastos(request):
     
     return render(request, 'proyecciongastos.html', context)
 
-@contaduria_required
+@prestamos_required
 def prestamos(request):
 
     context = {
@@ -103,7 +104,7 @@ def prestamos(request):
     
     return render(request, 'prestamos.html', context)
 
-@contaduria_required
+@ingresos_required
 def asientosingresos(request):
 
     context = {
@@ -112,7 +113,7 @@ def asientosingresos(request):
     
     return render(request, 'asientosingresos.html', context)
 
-@contaduria_required
+@ingresos_required
 def proyeccioningresos(request):
 
     context = {
