@@ -1,13 +1,16 @@
 from django import forms
-from .models import Transferencia, Usuario
+from .models import Documento
+from django.utils import timezone
 
-class TransferenciaForm(forms.ModelForm):
-    class Meta:
-        model = Transferencia
-        fields = ['receptor', 'documento']
-
-    def __init__(self, *args, **kwargs):
-        super(TransferenciaForm, self).__init__(*args, **kwargs)
-
-        # Filtra los usuarios excluyendo al usuario actual
-        self.fields['receptor'].queryset = Usuario.objects.all()
+class DocumentoForm(forms.Form):
+    destinatario = forms.CharField(max_length=100)
+    observacion = forms.CharField(widget=forms.Textarea)
+    documento = forms.FileField()
+    
+'''
+    def clean(self):
+        cleaned_data = super().clean()
+        cleaned_data['en_transito'] = True
+        cleaned_data['fecha_transito'] = timezone.now().date()
+        return cleaned_data
+'''

@@ -19,21 +19,12 @@ class TipoDocumentoAdmin(ImportExportModelAdmin):
     
 @admin.register(Documento)
 class DocumentoAdmin(ImportExportModelAdmin):
-    list_display = ('tipo', 'numero', 'ejercicio', 'sector', 'propietario')
-    readonly_fields = ('sector',)
+    list_display = ('tipo', 'numero', 'ejercicio', 'propietario',)
+    readonly_fields = ('fecha_alta', 'en_transito', 'destinatario', 'fecha_transito', 'observacion', 'transferencias')
     
 @admin.register(Transferencia)
 class TransferenciaAdmin(ImportExportModelAdmin):
-    list_display = ('documento', 'estado', 'fecha', 'emisor', 'receptor')
-    readonly_fields = ('emisor', 'fecha_confirmacion', 'recepcion_confirmada', 'fecha')
+    list_display = ('fecha', 'emisor', 'receptor', 'fecha_confirmacion',)
+    readonly_fields = ('fecha', 'emisor', 'receptor', 'fecha_confirmacion',)
     
-    actions = ['confirmarRecepcion']
-
-    def estado(self, obj):
-        return obj.estado
-    
-    @admin.action(description= "Confirmar recepcion")
-    def confirmarRecepcion(self, obj, queryset):
-        for obj in queryset:
-            obj.confirmarRecepcion()
     

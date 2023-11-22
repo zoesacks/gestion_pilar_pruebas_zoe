@@ -1,58 +1,22 @@
-from django.shortcuts import render, redirect
-from .models import *
-from django.db.models import Max,Subquery
-from .forms import TransferenciaForm
+from django.shortcuts import render
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Documento
+from .serializers import DocumentoSerializer
+from django.utils import timezone
 
 
 def expedientes(request):
-
-
     return render(request, 'expedientes.html')
 
 
-def crearTransferencia(request):
-    user = request.user
-    if request.method == 'POST':
-        form = TransferenciaForm(request.POST, user=user)
-        if form.is_valid():
-            form.save()
-            return redirect('expedientes')  # Redirige a una página exitosa
-    else:
-        form = TransferenciaForm()
+class GenerarTransferenciaView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = DocumentoSerializer(data=request.data)
 
-    return form
-
-
-def obtenerUsuarios(request):
-    usuarios = Usuario.objects.exclude(usuario = request.user)
-    return usuarios
-
-def obtenerDocumentosPendientes(request):
-    usuario = Usuario.objects.get(usuario = request.user)
-    
-    transferencias = Transferencia.objects.filter(receptor = usuario, recepcion_confirmada = False)
-    documentosIDs = transferencias.values_list('documento', flat=True)
-
-    documentos = Documento.objects.filter(id__in = documentosIDs)
-
-    return documentos
-
-def obtenerDocumentosEnTransito(request):
-    usuario = Usuario.objects.get(usuario = request.user)
-
-    transferencias = Transferencia.objects.filter(emisor = usuario, recepcion_confirmada = False)
-    documentosIDs = transferencias.values_list('documento')
-
-    documentos = Documento.objects.filter(id__in = documentosIDs)
-
-    return list(documentos)
-
-def obtenerDocumentos(request):
-    usuario = Usuario.objects.get(usuario = request.user)
-    transferencias = Transferencia.objects.filter(recepcion_confirmada = False)
-
-    documentos = Documento.objects.filter(propietario = usuario).exclude(id__in=transferencias.values('documento'))
-
-    return documentos 
-
-     
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

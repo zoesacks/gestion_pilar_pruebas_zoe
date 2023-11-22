@@ -1,47 +1,16 @@
 {% extends 'index.html' %}
 {% load static %}
 
-
 {% block content %}
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'path/to/bootstrap.bundle.min.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" />
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% load static %}
-    <script src="{% static 'script.js' %}"></script>
-    <title>Document</title>
-
-</head>
-
-
-    <div class="section"> 
-        <ul class="documentos-container">
-
-        </ul>
-    </div>
-
-</html>
-
-
-{% extends 'index.html' %}
-{% load static %}
-
-
-{% block content %}
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" />
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.2/css/fontawesome.min.css" integrity="sha384-BY+fdrpOd3gfeRvTSMT+VUZmA728cfF9Z2G42xpaRkUGu2i3DyzpTURDo5A6CaLK" crossorigin="anonymous">
+<script src="{% static 'script.js' %}"></script>
 
 <!--MODALES-->
 
@@ -130,6 +99,9 @@
     </div>
 </form>
 
+
+
+
 <div class="container mt-4" style="min-height: 70vh;">
     <div class="card">
         <div class="card-body">
@@ -146,7 +118,7 @@
                                     <div class="text-xl font-weight-bold text-primary text-uppercase mb-1">
                                         <b style="color: aliceblue;">DOCUMENTOS PENDIENTES</b>
                                     </div>
-                                    <div class="h4 mb-0 font-weight-bold" style="color: #ffffff;">{{ cantDocumentosPendientes }}</div>
+                                    <div class="h4 mb-0 font-weight-bold " id="documentos-pendientes" style="color: #ffffff;"></div>
                                 </div>
                             </div>
                         </div>
@@ -163,7 +135,7 @@
                                 <div class="text-lg font-weight-bold text-uppercase mb-1" style="color: rgb(35, 154, 5);">
                                     <b>DOCUMENTOS EN TRANSITO</b>
                                 </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800" style="color: rgb(35, 154, 5);">{{ cantDocumentosEnTransito }}</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="documentos-en-transito" style="color: rgb(35, 154, 5);"></div>
                                 </div>
                             </div>
                         </div>
@@ -180,7 +152,7 @@
                                         <div class="text-lg font-weight-boldtext-uppercase mb-1" style="color: rgb(252, 117, 0);">
                                             <b>DOCUMENTOS</b>
                                         </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800" style="color: #e96100;">{{ cantDocumentos }}</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="cant-documentos" style="color: #e96100;"></div>
                                 </div>
                             </div>
                         </div>
@@ -206,12 +178,13 @@
                         <div>
                             <button type="button" class="btn btn-outline-success btn-lg w-100 " data-toggle="modal" data-target="#filtroAvanzadoModal">
                                 Filtros
+                                
                             </button>
                         </div>  
                     </div>
                 </div>
             
-                <div class="row">
+                <div class="row" >
                     <div class="col-12 p-4">
                         <div class="table-responsive" style="border-radius: 0px; overflow: auto;height: 70vh;">
                             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0" style="border-radius: 15px; border-color: #5454E6;">
@@ -226,28 +199,8 @@
                                     </tr>
                                 </thead>
 
-                                <tbody class="">
-                                    {% for doc in documentosPendientes %}
-                                    <tr>
-                                        <td>{{doc.tipo.descripcion}}</td>
-                                        <td>{{doc.tipo.numero}}-{{doc.numero}}</td>
-                                        <td>{{doc.ejercicio}}</td>
-                                        <td>Pendiente de recepcion</td>
-                                        <td style="width: 150px;">
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <button type="submit" class="btn btn-primary" name="documentoDetalle" value="{{ trans.documento.id }}">
-                                                        <img class="logo" src="{% static 'assets/iconos/ver.png' %}" alt="" style="max-height: 30px;">
-                                                    </button> 
-                                                </div>
-                                                <div class="col-6">
-                                                    <button type="submit" class="btn btn-success" name="confirmarRecepcion" value="{{ trans.documento.id }}">
-                                                        <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                <tbody class="documentos-tabla">
+
                                 </tbody>
                             </table>
                         </div>
@@ -259,5 +212,36 @@
         </div>
     </div>
 </div>
+
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        //para que cuando 
+        var transferirDocumentoBtns = document.querySelectorAll('.transferirDocumentoBtn');
+        var modalDocumentoSelect = document.getElementById('documento');
+
+        transferirDocumentoBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var tipoDocumento = btn.getAttribute('data-doc-tipo');
+                var numeroDocumento = btn.getAttribute('data-doc-numero');
+                var ejercicioDocumento = btn.getAttribute('data-doc-ejercicio');
+
+                // Actualizar el modal con la información del documento seleccionado
+                modalDocumentoSelect.value = btn.value;
+                document.getElementById('tipoDocumento').innerText = tipoDocumento;
+                document.getElementById('numeroDocumento').innerText = numeroDocumento;
+                document.getElementById('ejercicioDocumento').innerText = ejercicioDocumento;
+
+                // Actualizar también el valor seleccionado en el select del modal (si estás usando Bootstrap Select)
+                $('#documento').selectpicker('val', btn.value);
+            });
+        });
+    });
+
+
+</script>
 
 {% endblock %}

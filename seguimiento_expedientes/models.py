@@ -41,21 +41,53 @@ class TipoDocumento(models.Model):
         verbose_name = 'tipo de documento'
         verbose_name_plural ='Tipos de documentos'
 
+
+class Transferencia(models.Model):
+  
+    #Campos que se autocomplentan
+    fecha = models.DateField(blank=False, null=False)
+    emisor = models.ForeignKey(Usuario, on_delete=models.CASCADE, blank=False, null=False, related_name="emisor")
+    receptor = models.ForeignKey(Usuario, on_delete=models.CASCADE, blank=False, null=False, related_name="receptor")
+    fecha_confirmacion = models.DateField(blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.fecha}, {self.emisor}'
+    
+    class Meta:
+        verbose_name = 'transferencia'
+        verbose_name_plural ='Transferencias'
+
     def clean(self):
-        super().clean() 
+        super().clean()
+
+    def save(self, *args, **kwargs):
+        super(Transferencia, self).save(*args, **kwargs)
 
 
 class Documento(models.Model):
+    #DATOS DEL DOCUMENTO
     tipo = models.ForeignKey(TipoDocumento, on_delete=models.CASCADE, blank=False, null=False)
     numero = models.IntegerField(blank=False, null=False)
     ejercicio = models.CharField(max_length = 4, blank=False, null=False)
-
-    fecha_alta = models.DateField(auto_now_add=True, blank=True, null=True)
-    sector = models.ForeignKey(Sector, on_delete=models.CASCADE, blank=False, null=False)
     propietario = models.ForeignKey(Usuario, on_delete=models.CASCADE, blank=False, null=False, related_name="propietario")
-
-    en_transito = models.BooleanField(default=False)
+    #se autocompleta
+    fecha_alta = models.DateField(auto_now_add=True, blank=True, null=True)
+    
+    
+    #PARA CUANDO EL DOCUMENTO ESTA EN TRANSFERIA
+    #obligatorio
     destinatario = models.ForeignKey(Usuario, on_delete=models.CASCADE, blank=True, null=True, related_name="destinatario")
+
+    #extra
+    observacion = models.TextField(blank=True, null=True)
+
+    #se autocompleta con el formulario
+    en_transito = models.BooleanField(default=False)
+    fecha_transito = models.DateField(blank=True, null=True)
+
+
+    #HITORIAL DE TRANSFERENCIAS
+    transferencias = models.ManyToManyField(Transferencia)
 
     def __str__(self):
         return f'{self.tipo.descripcion}. Nro:  {self.tipo}-{self.numero},  {self.ejercicio}'
@@ -71,73 +103,12 @@ class Documento(models.Model):
         if self.existe():
             raise ValidationError("El documento ya esta registrado en el sistema")
         
-        self.sector = self.propietario.sector
-        
         super(Documento, self).save(*args, **kwargs)
 
     def existe(instance):
         return Documento.objects.filter(tipo = instance.tipo, numero = instance.numero, ejercicio = instance.ejercicio).exclude(pk=instance.pk).exists()
     
 
-class Transferencia(models.Model):
-     
-    #Campos obligatorios
-    documento = models.ForeignKey(Documento, on_delete=models.CASCADE, blank=False, null=False)
-    receptor = models.ForeignKey(Usuario, on_delete=models.CASCADE, blank=False, null=False, related_name="receptor")
-
-    #Campos que se autocomplentan al hacer el save
-    fecha = models.DateField(blank=False, null=False)
-    emisor = models.ForeignKey(Usuario, on_delete=models.CASCADE, blank=False, null=False, related_name="emisor")
-
-    #extra
-    observacion = models.TextField(blank=True, null=True)
-
-    fecha_confirmacion = models.DateField(blank=True, null=True)
-    recepcion_confirmada = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f'{self.documento}'
-    
-    class Meta:
-        verbose_name = 'transferencia'
-        verbose_name_plural ='Transferencias'
-
-    def clean(self):
-        if self.documento.propietario == self.receptor:
-            raise ValidationError("No podes hacer una transferencia a vos mismo")
-        
-        if Transferencia.objects.filter(documento = self.documento, recepcion_confirmada = False).exists():
-            raise ValidationError("El documento ya esta en transito")
-        
-        super().clean()
-
-    def save(self, *args, **kwargs):
-        if self.documento.propietario == self.receptor and Transferencia.objects.exclude(id=self.id).filter(documento = self.documento, recepcion_confirmada = False).exists():
-            return
-        
-        self.emisor =  self.documento.propietario
-        self.fecha = timezone.now()
-        
-        super(Transferencia, self).save(*args, **kwargs)
-
-    @property
-    def estado(self):
-        if self.recepcion_confirmada == False:
-            return "En transito"
-
-        return "Recepcion confirmada"
-
-    def confirmarRecepcion(self):
-        if self.recepcion_confirmada == False:
-
-            self.recepcion_confirmada = True
-            self.save()
-
-            documento = self.documento
-            documento.sector = self.receptor.sector
-            documento.propietario = self.receptor
-            documento.ultima_actualizacion = timezone.now()
-            documento.save()
 
 
 

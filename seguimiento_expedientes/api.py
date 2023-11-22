@@ -1,6 +1,8 @@
-from .models  import Documento, Sector, TipoDocumento, Usuario, Transferencia
+from .models  import Documento
 from rest_framework import viewsets, permissions
-from .serializers import DocumentoSerializer
+from rest_framework.response import Response
+from .serializers import DocumentoSerializer, UserSerializer
+from django.contrib.auth.models import User
 
 
 class DocumentoViewSet(viewsets.ModelViewSet):
@@ -12,4 +14,10 @@ class DocumentoViewSet(viewsets.ModelViewSet):
     
 
 
+class UsuarioLogueadoViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserSerializer
 
+    def list(self, request):
+        serializer = self.serializer_class(request.user)
+        return Response(serializer.data)
