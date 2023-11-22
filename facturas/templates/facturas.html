@@ -11,6 +11,8 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" />
+
 
 
 <!--FILTROS-->
@@ -18,7 +20,6 @@
 <input type="hidden" name="fecha_hasta" value="{{ fecha_hasta }}">
 
 <!-- Ventana emergente (modal) para el formulario avanzado -->
-
 <div class="modal fade" id="filtroAvanzadoModal" tabindex="-1" role="dialog" aria-labelledby="filtroAvanzadoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
@@ -72,75 +73,133 @@
                     
         
                     <div class="row">
-                        <div class="col-6">
-        
-                            <!--FILTRO PROVEEDOR-->
+                        <!--FILTRO PROVEEDOR-->
+                        <div class="col-3 mt-4 ml-2">
                             <div class="row">
-                                <div class="col-6">
-                                    <label for="proveedor" style="margin-top: 20px;">
-                                        <p><b class="text-primary">Proveedores</b></p>
-                                        <small class="text-primary font-italic">(Pres. Ctrl para seleccionar más de uno)</small>
-                                    </label>
-        
-                                    <input type="text" id="buscador_proveedores" class="form-control"
-                                        placeholder="Buscar proveedor...">
-                                </div>
-                                <div class="col-6">
-                                    <label for="factura" style="margin-top: 20px;">
-                                        <p><b class="text-primary">Facturas</b></p>
-                                        <small class="text-primary font-italic">(Pres. Ctrl para seleccionar más de uno)</small>
-                                    </label>
-                                    <input type="text" id="buscador_facturas" class="form-control" placeholder="Buscar factura...">
-                                </div>
+                                <p><b class="text-primary">Proveedores</b></p>
+                            </div>
 
-                                <div class="col-6">
+                            <div class="row"> 
+                                <label for="proveedor" >
+                                    <small class="text-primary font-italic">(Pres. Ctrl para seleccionar más de uno)</small>
+                                    <input type="text" id="buscador_proveedores" class="form-control" placeholder="Buscar proveedor...">
+                                </label>
+                            </div>
+            
+                            <div class="row">
+                                <div class="col-12">
                                     <!-- lista de proveedores -->
-                                    <select id="proveedor" name="proveedor" class="form-control" multiple style="font-size: small;margin-top: 15px; height: 280px; resize: vertical; max-height: 500px; overflow-x: scroll;">
+                                    <select id="proveedor" name="proveedor" class="form-control" multiple
+                                        style="font-size: small;margin-top: 15px; height: 280px; resize: vertical; max-height: 500px; overflow-x: scroll;">
                                         {% for proveedor in proveedores %}
                                         <option value="{{ proveedor }}">{{ proveedor }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
-        
-                                <div class="col-6">
-        
+                            </div>
+
+                        </div>
+                        
+                        <!--FILTRO FACTURA-->
+                        <div class="col-3 mt-4 ml-2">
+                            <div class="row">
+                                <p><b class="text-primary">Facturas</b></p>
+                            </div>
+
+                            <div class="row">
+                                <label for="factura">
+                                    <small class="text-primary font-italic">(Pres. Ctrl para seleccionar más de uno)</small>
+                                    <input type="text" id="buscador_facturas" class="form-control" placeholder="Buscar factura...">
+                                </label>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-12">
                                     <!-- lista de facturas -->
-                                    <select id="nroFactura" name="nroFactura" class="form-control" multiple style="font-size: small;margin-top: 15px; height: 280px; resize: vertical; max-height: 500px; overflow-x: scroll;">
+                                    <select id="nroFactura" name="nroFactura" class="form-control" multiple
+                                        style="font-size: small;margin-top: 15px; height: 280px; resize: vertical; max-height: 500px; overflow-x: scroll;">
                                         {% for nroFactura in nroFacturas %}
                                         <option value="{{ nroFactura }}">{{ nroFactura }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
-        
                             </div>
-        
+                        
                         </div>
-                        <div class="col-6">
+
+                        <!--FILTRO UNIDAD EJECUTORA-->
+                        <div class="col-3 mt-4 ml-2">
+
                             <div class="row">
-                                <div class="col-6 ">
-                                    <div class="card" style="border: none;">
-                                        <div class="card-body">
-                                            <p class="card-title"> <b class="text-primary">Proveedores seleccionados</b> </p>
-                                            <ul id="proveedores_seleccionados" class="list-group"
-                                                style="list-style: none;font-size: smaller;height: 400px;">
-                                                <!-- Aquí se listarán los proveedores seleccionados -->
-                                            </ul>
-                                        </div>
+                                <p><b class="text-primary">Unidades ejecutoras</b></p>
+                            </div>
+                            
+                            <div class="row">
+                                <label for="unidadEjecutora">
+                                    <small class="text-primary font-italic">(Pres. Ctrl para seleccionar más de uno)</small>
+                                    <input type="text" id="buscador_unidadesEjecutoras" class="form-control" placeholder="Buscar unidad ejecutora...">
+                                </label>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-12">
+                                    <!-- lista de facturas -->
+                                    <select id="unidadEjecutora" name="unidadEjecutora" class="form-control" multiple
+                                        style="font-size: small;margin-top: 15px; height: 280px; resize: vertical; max-height: 500px; overflow-x: scroll;">
+                                        {% for unidadEjecutora in unidadesEjecutoras %}
+                                        <option value="{{ unidadEjecutora }}">{{ unidadEjecutora }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        
+                        </div>
+
+                        <div class="col-3 mt-4">
+                            <div class="row">
+                                <p><b class="text-primary">Seleccionados</b></p>
+                            </div>
+
+                            <div class="row">
+                                <div class="card" style="border: none;">
+                                    <div class="card-header">
+                                        <small class="text-primary font-italic">Proveedores</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul id="proveedores_seleccionados" class="list-group">
+                                            <!-- Aquí se listarán los proveedores seleccionados -->
+                                        </ul>
                                     </div>
                                 </div>
-                                <div class="col-6">
-                                    <div class="card" style="border: none;border-top: 15px;">
-                                        <div class="card-body">
-                                            <p class="card-title"><b class="text-primary">Facturas seleccionadas</b> </p>
-                                            <ul id="facturas_seleccionadas" class="list-group"
-                                                style="list-style: none;font-size: smaller;height: 400px;">
-                                                <!-- Aquí se listarán los códigos seleccionados -->
-                                            </ul>
-                                        </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="card" style="border: none;">
+                                    <div class="card-header">
+                                        <small class="text-primary font-italic">Facturas</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul id="facturas_seleccionadas" class="list-group">
+                                            <!-- Aquí se listarán los proveedores seleccionados -->
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="card" style="border: none;">
+                                    <div class="card-header">
+                                        <small class="text-primary font-italic">Unidades ejecutoras</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul id="unidades_ejecutoras_seleccionadas" class="list-group">
+                                            <!-- Aquí se listarán los proveedores seleccionados -->
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
                     </div>
         
                 </div>
@@ -275,9 +334,9 @@
                 <!--SECCION DE TARJEtAS-->
                 <div class="row">
                     <!-- cantidad facturas -->
-                    <div class="col-xl-4 col-md-4 mb-4">
+                    <div class="col-xl-3 col-md-3 mb-3">
                         <div class="card shadow h-100 py-2"
-                            style="background-color: rgba(1, 37, 242, 0.729);border-left: 4px solid rgba(1, 10, 185, 0.9);">
+                            style="background-color: rgba(1, 37, 242, 0.503);border-left: 4px solid rgba(1, 10, 185, 0.9);">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
                                     <div class="col mr-2">
@@ -286,62 +345,87 @@
                                         </div>
                                         <div class="h4 mb-0 font-weight-bold" style="color: #ffffff;">{{ cantidad_facturas_pendientes }}</div>
                                     </div>
-                                    <div class="col-auto">
+                                    <!-- <div class="col-auto">
                                         <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt="" style="height: 60px;">
-                                    </div>
+                                    </div> -->
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                    
                     <!-- total solicitudes pendientes -->
-                    <div class="col-xl-4 col-md-4 mb-4">
-                        <div class="card shadow h-100 py-2"
-                            style="background-color: rgba(245, 186, 57, 0.5);border-left: 4px solid rgba(237, 146, 0, 0.9);">
-                            <div class="card-body">
-                                <div class="row no-gutters align-items-center">
-                                    <div class="col mr-2">
-                                        <div class="text-lg font-weight-boldtext-uppercase mb-1" style="color: rgb(252, 117, 0);">
-                                            <b>DINERO DISPONIBLE</b>
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800" style="color: #e96100;">
-                                            $ &nbsp; {{ total|intcomma}}
-                                        </div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt=""
-                                            style="height: 60px;">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <!-- total solicitudes pendientes -->
-                    <div class="col-xl-4 col-md-4 mb-4">
+                    <div class="col-xl-3 col-md-3 mb-3">
                         <div class="card shadow h-100 py-2"
                             style="background-color: rgba(60, 255, 12, 0.5);border-left: 4px solid rgba(31, 142, 3, 0.5);">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
                                     <div class="col mr-2">
                                         <div class="text-lg font-weight-bold text-uppercase mb-1" style="color: rgb(35, 154, 5);">
-                                            <b>TOTAL SELECCIONADO</b>
+                                            <b>TOTAL</b>
                                         </div>
-                                        <div id="totalSeleccionado" class="h5 mb-0 font-weight-bold text-gray-800" style="color: rgb(35, 154, 5);">
-                                            $&nbsp;&nbsp;0
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" style="color: rgb(35, 154, 5);">
+                                            $&nbsp;&nbsp;{{dineroTotalDeFacturas|intcomma}}
                                         </div>
 
                                     </div>
-                                    <div class="col-auto">
+                                    <!-- <div class="col-auto">
                                         <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt=""
                                             style="height: 60px;">
-                                    </div>
+                                    </div> -->
                                 </div>
                             </div>
                         </div>
                     </div>
 
+
+                    <!-- total solicitudes pendientes -->
+                    <div class="col-xl-3 col-md-3 mb-3">
+                        <div class="card shadow h-100 py-2"
+                            style="background-color: rgba(245, 186, 57, 0.5);border-left: 4px solid rgba(237, 146, 0, 0.9);">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-lg font-weight-boldtext-uppercase mb-1" style="color: rgb(252, 117, 0);">
+                                            <b>DISPONIBLE</b>
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" style="color: #e96100;">
+                                            $ &nbsp; {{ total|intcomma}}
+                                        </div>
+                                    </div>
+                                    <!-- <div class="col-auto">
+                                        <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt=""
+                                            style="height: 60px;">
+                                    </div> -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- total solicitudes pendientes -->
+                    <div class="col-xl-3 col-md-3 mb-3">
+                        <div class="card shadow h-100 py-2"
+                            style="background-color: rgba(245, 249, 38, 0.5);border-left: 4px solid rgba(105, 107, 0, 0.5);">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-lg font-weight-bold text-uppercase mb-1" style="color: rgb(105, 107, 0);">
+                                            <b>SELECCION</b>
+                                        </div>
+                                        <div id="totalSeleccionado" class="h5 mb-0 font-weight-bold text-gray-800" style="color: rgb(105, 107, 0);">
+                                            $&nbsp;&nbsp;0
+                                        </div>
+
+                                    </div>
+                                    <!-- <div class="col-auto">
+                                        <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt=""
+                                            style="height: 60px;">
+                                    </div> -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
 
@@ -350,43 +434,48 @@
                 <div class="section"> 
 
                     <div class="row p-3">
-                        <div class="col-6 ">
+                        <div class="col-5">
                             <div id="botonAutorizar">
                         
-                                <button type="button" id ="autorizar-boton" class="btn btn-success autorizar-button btn-lg w-100" data-toggle="modal" data-target="#confirmarModal" data-total-disponible="{{ totalDisponibleConCodigo }}">
+                                <button type="button" id ="autorizar-boton" class="btn btn-outline-success btn-lg autorizar-button w-100" data-toggle="modal" data-target="#confirmarModal" data-total-disponible="{{ totalDisponibleConCodigo }}">
                                     Autorizar Seleccionados
                                 </button>
                 
                             </div>
                         </div>
 
-                        <div class="col-6">
+                        <div class="col-5">
                             <div>
                                 <button type="button" class="btn btn-outline-success btn-lg  w-100 " data-toggle="modal" data-target="#filtroAvanzadoModal">
                                     Filtros
                                 </button>
                             </div>  
                         </div>
-            
+
+                        <div class="col-2">
+                                <button type="submit" class="btn btn-outline-primary btn-lg w-100" formaction="{% url 'exportar_facturas' %}">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                        </div>
                     </div>
                 
                     <div class="row">
-                        <div class="col-12">
-                            <div class="table-responsive" style="border-radius: 2px;">
-                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"
-                                    style="border-radius: 15px;border-color: #5454E6;">
+                        <div class="col-12 p-2">
+                            <div class="table-responsive" style="border-radius: 0px; overflow: auto;height: 70vh;">
+                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0" style="border-radius: 15px; border-color: #5454E6;">
+                               
                                     <thead>
                                         <tr style="background-color: #5454E6;color: aliceblue;">
 
-                                            <th class="text-center text-uppercase p-3"><input type="checkbox" name="" id="seleccionarTodos"></th>
-                                            <th class="text-center text-uppercase">Codigo financiero</th>
-                                            <th class="text-center text-uppercase">Nro factura</th>
-                                            <th class="text-center text-uppercase">Proveedor</th>
-                                            <th class="text-center text-uppercase">FF</th>
-                                            <th class="text-center text-uppercase">Unidad ejecutora</th>
-                                            <th class="text-center text-uppercase">Estado</th>
-                                            <th class="text-center text-uppercase">Importe</th>
-                                            <th></th>
+                                            <th style="background-color: #5454E6; color: aliceblue; position: sticky; top: 0; z-index: 1;" class="text-center text-uppercase p-3"><input type="checkbox" name="" id="seleccionarTodos"></th>
+                                            <th style="background-color: #5454E6; color: aliceblue; position: sticky; top: 0; z-index: 1;" class="text-center text-uppercase">Codigo financiero</th>
+                                            <th  style="background-color: #5454E6; color: aliceblue; position: sticky; top: 0; z-index: 1;" class="text-center text-uppercase">Nro factura</th>
+                                            <th  style="background-color: #5454E6; color: aliceblue; position: sticky; top: 0; z-index: 1;" class="text-center text-uppercase">Proveedor</th>
+                                            <th  style="background-color: #5454E6; color: aliceblue; position: sticky; top: 0; z-index: 1;" class="text-center text-uppercase">FF</th>
+                                            <th  style="background-color: #5454E6; color: aliceblue; position: sticky; top: 0; z-index: 1;" class="text-center text-uppercase">Unidad ejecutora</th>
+                                            <th  style="background-color: #5454E6; color: aliceblue; position: sticky; top: 0; z-index: 1;" class="text-center text-uppercase">Estado</th>
+                                            <th  style="background-color: #5454E6; color: aliceblue; position: sticky; top: 0; z-index: 1;" class="text-center text-uppercase">Importe</th>
+                                            <th  style="background-color: #5454E6; color: aliceblue; position: sticky; top: 0; z-index: 1;" ></th>
 
                                         </tr>
                                     </thead>
@@ -395,18 +484,18 @@
                                         <tr>
                                             {% if factura.estado == 'Devengado' and factura.autorizado == False %}
                                                 <td class="text-center p-3">
-                                                    <input type="checkbox" name="facturas_check_id" value="{{ factura.id }}" data-nro="{{ factura.nro_factura }}" data-total="{{ factura.total }}"  data-proveedor="{{ factura.proveedor}}" data-codigo="{{ factura.codigo.CODIGO }}">
+                                                    <input type="checkbox" name="facturas_check_id" value="{{ factura.id }}" data-nro="{{ factura.nro_factura }}" data-total="{{ factura.total }}"  data-proveedor="{{ factura.proveedor}}" data-codigo="{{ factura.codigo.codigo }}">
                                                 </td>
                                             {% else %}
                                                 <td class="text-center p-3"></td>
                                             {% endif %}
-                                            <td style="width: 130px;">{{ factura.codigo.CODIGO }}</td>
+                                            <td style="width: 130px;">{{ factura.codigo.codigo }}</td>
                                             <td style="width: 130px;">📅{{ factura.nro_factura }}</td>
                                             <td>{{ factura.proveedor }}</td>
                                             <td>{{ factura.ff }}</td>
                                             <td>{{factura.unidad_ejecutora}}</td>
                                             <td>{{factura.estado}}</td>
-                                            <td>💵{{factura.total|intcomma}}</td>
+                                            <td>{{factura.total|intcomma}}</td>
                                             <td style="display: none;" id="total_factura_{{ factura.id }}">{{factura.total}}</td>
                                             <td style="width: 150px;">
                                                 <div class="row">
@@ -417,35 +506,35 @@
                                                     </div>
 
                                                     <div class="col-6">
-                                                        {% if factura.estado == 'Devengado' %}
+                                                        {% if factura.estado == 'Devengado' and factura.autorizado == False %}
 
-                                                            {%if factura.autorizado == False %}
+                                                            {% for codigo, totalDisponible in totalDisponibleConCodigo.items %}
+                                                                
 
-                                                                {% for codigo, totalDisponible in totalDisponibleConCodigo.items %}
+                                                                {% if codigo == factura.codigo.codigo %}
+                                                                    {% if factura.total < totalDisponible %}
+                                                                        <button type="submit" class="btn btn-success" name="factura_button_id" value="{{ factura.id }}">
+                                                                            <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">
+                                                                        </button>
+                                                                            
+                                                                    {% else %}
+                                                                        <button type="button" class="btn btn-secondary error-button" >
+                                                                            <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">
+                                                                        </button>
 
-                                                                    {% if codigo == factura.codigo.CODIGO %}
-                                                                        {% if factura.total < totalDisponible %}
-                                                                            <button type="submit" class="btn btn-success" name="factura_button_id" value="{{ factura.id }}">
-                                                                                <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">
-                                                                            </button>
-                                                                                
-                                                                        {% else %}
-                                                                            <button type="button" class="btn btn-secondary error-button" >
-                                                                                <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">
-                                                                            </button>
-
-                                                                        {% endif %}
                                                                     {% endif %}
 
-                                                                {% endfor %}
+                                                                {% endif %}
 
-                                                            {% else%}
-                                                                <button type="submit" class="btn btn-danger botonFactura" name="factura_desautorizar" value="{{ factura.id }}" style="display: none">
-                                                                    <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">
-                                                                </button>         
-                                                                <div class="fecha-auto" data-fecha-auto="{{ factura.autorizado_fecha }}"></div> 
-                                                            {% endif %}
-                                                            
+                                                            {% endfor %}
+
+                                                        {% else%}
+
+                                                            <button type="submit" class="btn btn-danger botonFactura" name="factura_desautorizar" value="{{ factura.id }}" style="display: none">
+                                                                <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">
+                                                            </button>         
+                                                            <div class="fecha-auto" data-fecha-auto="{{ factura.autorizado_fecha }}"></div> 
+     
                                                         {% endif %}
                                                     </div>
                                                 </div>
@@ -455,22 +544,27 @@
                                         {% endfor %}
                                     </tbody>
                                 </table>
-                           
-                                <div class="pagination justify-content-center">
+
+                            </div>
+                                                       
+                            <div class="pagination justify-content-center p-3 row">
+                                <div class="col-4 text-center">
                                     {% if page.has_previous %}
-                                    <a href="?page=1" class="btn btn-primary" style="margin: 5px;padding: 1;">Primera</a>
-                                    <a href="?page={{ page.previous_page_number }}" class="btn btn-primary" style="margin: 5px;padding: 1;">Anterior</a>
+                                    <a href="?page=1" class="btn btn-primary p-2" style="margin: 5px;padding: 1;">Primera</a>
+                                    <a href="?page={{ page.previous_page_number }}" class="btn btn-primary p-2" style="margin: 5px;padding: 1;">Anterior</a>
                                     {% endif %}
-                                    
+                                </div>
+                                <div class="col-4 text-center pt-3">
                                     <span class="current">
                                         {% if cantidad_facturas_pendientes > 0 %}
                                         <b>Página {{ page.number }} de {{ page.paginator.num_pages }}</b>
                                         {% endif %}
                                     </span>
-                                                            
+                                </div>
+                                <div class="col-4 text-center">  
                                     {% if page.has_next %}
-                                    <a href="?page={{ page.next_page_number }}" class="btn btn-primary" style="margin: 5px;padding: 1;">Siguiente</a>
-                                    <a href="?page={{ page.paginator.num_pages }}" class="btn btn-primary" style="margin: 5px;padding: 1;">Última</a>
+                                    <a href="?page={{ page.next_page_number }}" class="btn btn-primary p-2" style="margin: 5px;padding: 1;">Siguiente</a>
+                                    <a href="?page={{ page.paginator.num_pages }}" class="btn btn-primary p-2" style="margin: 5px;padding: 1;">Última</a>
                                     {% endif %}
                                 </div>
                             </div>
@@ -482,7 +576,7 @@
         </div>
     </div>
 </form>
-
+<br>
 <script>
 
     // Función para configurar los campos de fecha con los valores del primer y último día del mes actual
@@ -496,7 +590,7 @@
 
     function limitarProveedoresSeleccionados() {
         const maxProveedoresSeleccionados = 20;
-        const maxCaracteresProveedor = 22;
+        const maxCaracteresProveedor = 15;
         const proveedoresSeleccionados = document.getElementById('proveedores_seleccionados').getElementsByTagName('li');
 
         for (let i = 0; i < proveedoresSeleccionados.length; i++) {
@@ -521,7 +615,7 @@
 
     function limitarfacturasSeleccionados() {
         const maxfacturasSeleccionadas = 20;
-        const maxCaracteresfactura = 22;
+        const maxCaracteresfactura = 15;
         const facturasSeleccionadas = document.getElementById('facturas_seleccionadas').getElementsByTagName('li');
 
         for (let i = 0; i < facturasSeleccionadas.length; i++) {
@@ -543,6 +637,34 @@
             facturasSeleccionadas[maxfacturasSeleccionadas - 1].parentNode.appendChild(masElement);
         } 
     }
+
+    function limitarUnidadesEjecutorasSeleccionados() {
+        const maxUnidadesSeleccionadas = 5;
+        const maxCaracteresUnidades = 15;
+        const unidadesSeleccionadas = document.getElementById('unidades_ejecutoras_seleccionadas').getElementsByTagName('li');
+
+        for (let i = 0; i < unidadesSeleccionadas.length; i++) {
+            let unidadTexto = unidadesSeleccionadas[i].textContent.trim();
+            if (unidadTexto.length > maxCaracteresUnidades) {
+                unidadTexto = unidadTexto.substring(0, maxCaracteresUnidades) + '...';
+            }
+            unidadesSeleccionadas[i].textContent = '🏢 ' + unidadTexto;
+        }
+
+        if (unidadesSeleccionadas.length > maxUnidadesSeleccionadas) {
+            for (let i = maxUnidadesSeleccionadas; i < unidadesSeleccionadas.length; i++) {
+                unidadesSeleccionadas[i].style.display = 'none';
+            }
+
+            // Agregar un elemento adicional al final que diga "Mas.."
+            const masElement = document.createElement('li');
+            masElement.textContent = '🏢 Mas..';
+            unidadesSeleccionadas[maxUnidadesSeleccionadas - 1].parentNode.appendChild(masElement);
+        } 
+    }
+
+
+
 
     function toggleAutorizarButton() {
         var totalSeleccionado = 0;
@@ -744,6 +866,7 @@
             $('#totalFacturas').text('$ ' + totalFacturas.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'));
         });
  
+ 
 
         $('.error-button').click(function () {     
             
@@ -887,6 +1010,38 @@
 
         // Limitar la lista de proveedores seleccionados después de agregar nuevos proveedores
         limitarfacturasSeleccionados();
+        });
+
+        const buscadorUnidades = document.getElementById('buscador_unidadesEjecutoras');
+        const selectUnidades = document.getElementById('unidadEjecutora');
+        const opcionesUnidades = selectUnidades.options;
+        const unidadesSeleccionadas = document.getElementById('unidades_ejecutoras_seleccionadas');
+
+        buscadorUnidades.addEventListener('input', function() {
+            const filtro2 = buscadorUnidades.value.toLowerCase();
+            for (let i = 0; i < opcionesUnidades.length; i++) {
+                const facturas = opcionesUnidades[i].text.toLowerCase();
+                if (facturas.includes(filtro2)) {
+                    opcionesUnidades[i].style.display = 'block';
+                } else {
+                    opcionesUnidades[i].style.display = 'none';
+                }
+            }
+        });
+
+        selectUnidades.addEventListener('change', function() {
+            unidadesSeleccionadas.innerHTML = ''; // Limpiamos la lista antes de actualizarla
+            for (let i = 0; i < opcionesUnidades.length; i++) {
+                const opcion2 = opcionesUnidades[i];
+                if (opcion2.selected) {
+                    const unidadSeleccionada = document.createElement('li');
+                    unidadSeleccionada.textContent = opcion2.text;
+                    unidadesSeleccionadas.appendChild(unidadSeleccionada);
+                }
+            }
+
+        // Limitar la lista de proveedores seleccionados después de agregar nuevos proveedores
+        limitarUnidadesEjecutorasSeleccionados();
         });
     
 

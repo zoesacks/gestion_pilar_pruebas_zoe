@@ -1,22 +1,27 @@
-from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
-from .models import Factura, CodigoUsado, CodigoAprobacion, OrdenDePago
-from administracion.models import codigoFinanciero
-from contaduria.models import proyeccionGastos
+from .models import Factura, CodigoUsado, CodigoAprobacion, OrdenDePago, ProyeccionGastos
+from .admin import FacturaExportResource
 from django.utils import timezone
 from datetime import datetime
 from django.db.models.functions import ExtractMonth
 import datetime
 from django.db.models import Sum
 from administracion.gestion_pases import contaduria_required
-from django.contrib.auth.models import User
 import json
-from decimal import Decimal
-from django.db.models import F
+from django.http import HttpResponse
+from import_export.resources import modelresource_factory
+
 
 meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+
 codigoIngresado = ""
+fecha_desde = None
+fecha_hasta = None
+proveedores_seleccionados = []
+facturas_seleccionadas = []
+unidades_seleccionadas = []
+verFacturas = None
 
 @contaduria_required
 def detalleFactura(request, factura_detalle_id):
@@ -26,7 +31,7 @@ def detalleFactura(request, factura_detalle_id):
     if OrdenDePago.objects.filter(nro_factura = factura_detalle.nro_factura, proveedor = factura_detalle.proveedor).exists():
         op = OrdenDePago.objects.filter(nro_factura = factura_detalle.nro_factura, proveedor = factura_detalle.proveedor).first()
 
-    totalDisponible = obtenerDineroDisponible(factura_detalle.codigo.CODIGO)
+    totalDisponible = obtenerDineroDisponible(factura_detalle.codigo.codigo)
 
     if request.method == 'POST':
 
@@ -48,19 +53,23 @@ def detalleFactura(request, factura_detalle_id):
 def facturas(request):
 
     #filtra por proveedor, por factura y por facturas autorizadas y no autorizadas
+    obtenerParametrosParaFiltros(request)
     facturas = filtrar(request)
 
     grupos_usuario = request.user.groups.values_list('name', flat=True)
 
     #Listado de proveedores y facturas sin repetidos
-    proveedores = Factura.objects.filter(codigo__CODIGO__in=grupos_usuario).values_list('proveedor', flat=True).distinct().order_by('proveedor')
-    nroFacturas = Factura.objects.filter(codigo__CODIGO__in=grupos_usuario).values_list('nro_factura', flat=True).distinct()
-    
+    proveedores = Factura.objects.filter(codigo__codigo__in=grupos_usuario).values_list('proveedor', flat=True).distinct().order_by('proveedor')
+    nroFacturas = Factura.objects.filter(codigo__codigo__in=grupos_usuario).values_list('nro_factura', flat=True).distinct()
+    unidadesEjecutoras = Factura.objects.filter(codigo__codigo__in=grupos_usuario).values_list('unidad_ejecutora', flat=True).distinct()
+        
     cantidad_facturas_pendientes = len(facturas) or 0
+    dineroTotalDeFacturas = round(sum(factura.total for factura in facturas), 2)
 
     montoCodigoAprobacion =  0
-    
+
     if request.method == 'POST':
+            
         #cambio el estado de una sola factura
         if 'factura_button_id' in request.POST:
             #obtengo el id del que se apreto el boton para marcar como Autorizado
@@ -86,6 +95,7 @@ def facturas(request):
 
         if 'ingresarCodigoMod' in request.POST:
             montoCodigoAprobacion = obtenerMontoCodigo(request) or 0
+
 
     totalDisponibleConCodigo = {}
     totalDisponible = {}
@@ -120,9 +130,38 @@ def facturas(request):
         'montoCodigoAprobacion': montoCodigoAprobacion,
         'totalDisponibleConCodigo' : totalDisponibleConCodigo,
         'total' : total,
+        'dineroTotalDeFacturas' : dineroTotalDeFacturas,
+        'unidadesEjecutoras': unidadesEjecutoras,
     }
 
     return render(request, 'facturas.html', context)
+
+def exportar_facturas(request):
+    facturas = filtrar(request)
+
+    # Crea una instancia del recurso personalizado FacturaResource
+    factura_resource = FacturaExportResource()
+
+    # Exporta las facturas utilizando el recurso personalizado
+    dataset = factura_resource.export(facturas)
+
+    # Lógica para devolver el archivo exportado (puede variar según tus necesidades)
+    response = HttpResponse(dataset.xlsx, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="facturas_pagadas.xlsx"'
+
+    return response
+
+
+def obtenerParametrosParaFiltros(request):
+    global fecha_desde, fecha_hasta, proveedores_seleccionados, facturas_seleccionadas, unidades_seleccionadas, verFacturas
+
+    # Obtener los parámetros de los filtros (si están presentes)
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+    proveedores_seleccionados = request.GET.getlist('proveedor')
+    facturas_seleccionadas = request.GET.getlist('nroFactura')
+    unidades_seleccionadas = request.GET.getlist('unidadEjecutora')
+    verFacturas = request.GET.get('verFacturas')
 
 
 def filtrar(request):
@@ -132,38 +171,39 @@ def filtrar(request):
     grupos_usuario = request.user.groups.values_list('name', flat=True)
 
     #Agarro las facturas devengadas que no esten autorizadas
-    facturas = facturas.filter(codigo__CODIGO__in=grupos_usuario)
+    facturas = facturas.filter(codigo__codigo__in=grupos_usuario)
     facturas = [factura for factura in facturas if factura.estado == "Devengado" and factura.autorizado == False]
-    # Obtener los parámetros de los filtros (si están presentes)
-    fecha_desde = request.GET.get('fecha_desde')
-    fecha_hasta = request.GET.get('fecha_hasta')
-    proveedores_seleccionados = request.GET.getlist('proveedor')
-    facturas_seleccionadas = request.GET.getlist('nroFactura')
-    verFacturas = request.GET.get('verFacturas')
-    
+
+    global fecha_desde, fecha_hasta, proveedores_seleccionados, facturas_seleccionadas, unidades_seleccionadas, verFacturas
+
     if verFacturas:
-        facturas = Factura.objects.filter(codigo__CODIGO__in=grupos_usuario)
+        facturas = Factura.objects.all()
+        facturas = facturas.filter(codigo__codigo__in=grupos_usuario)
 
         if verFacturas == "pendientes":
-            facturas = [factura for factura in facturas if factura.estado == "Pendiente"]
+            facts = [factura.id for factura in facturas if factura.estado == "Pendiente"]
+            facturas = facturas.filter(id__in = facts)
     
         if verFacturas == "autorizadas":
-            facturas = [factura for factura in facturas if factura.estado == "Devengado" and factura.autorizado == True]
+            facts = [factura.id for factura in facturas if factura.estado == "Devengado" and factura.autorizado == True]
+            facturas = facturas.filter(id__in = facts)
 
         if verFacturas == "noAutorizadas": 
-            facturas = [factura for factura in facturas if factura.estado == "Devengado" and factura.autorizado == False]
+            facts = [factura.id for factura in facturas if factura.estado == "Devengado" and factura.autorizado == False]
+            facturas = facturas.filter(id__in = facts)
            
         if verFacturas == "op":
-            facturas = [factura for factura in facturas if factura.estado == "OP"]
+            facts = [factura.id for factura in facturas if factura.estado == "OP"]
+            facturas = facturas.filter(id__in = facts)
 
         if verFacturas == "pagoParcial": 
-            facturas = [factura for factura in facturas if factura.estado == "Pagos parciales"]
+            facts = [factura.id  for factura in facturas if factura.estado == "Pagos parciales"]
+            facturas = facturas.filter(id__in = facts)
 
         if verFacturas == "pagadas": 
-            facturas = [factura for factura in facturas if factura.estado == "Pagada"]
+            facts = [factura.id  for factura in facturas if factura.estado == "Pagada"]
+            facturas = facturas.filter(id__in = facts)
 
-        if verFacturas == "todas":
-            facturas = Factura.objects.filter(codigo__CODIGO__in=grupos_usuario)
 
     # Aplicar los filtros si están presentes
     if fecha_desde and fecha_hasta:
@@ -181,7 +221,12 @@ def filtrar(request):
         #filtrar por facturas
         facturas = facturas.filter(nro_factura__in = facturas_seleccionadas)
 
+    if unidades_seleccionadas:
+        #filtrar por facturas
+        facturas = facturas.filter(unidad_ejecutora__in = unidades_seleccionadas)
+
     return facturas
+
 
 def obtenerMontoCodigo(request):
     global codigoIngresado
@@ -201,15 +246,15 @@ def obtenerDineroDisponible(codigo):
     totalUsado = 0
 
     #obtengo el total de dinero que se uso con los CodigoAprobacion
-    codigosUsados = CodigoUsado.objects.filter(codigo_financiero__CODIGO = codigo, fecha__month = ExtractMonth(timezone.now()))
+    codigosUsados = CodigoUsado.objects.filter(codigo_financiero__codigo = codigo, fecha__month = ExtractMonth(timezone.now()))
     totalUsado = codigosUsados.aggregate(total=Sum('monto_usado'))['total'] or 0
 
     #obtengo el dinero disponible del mes
-    proyeccion = proyeccionGastos.objects.filter(CODIGO=codigo, MES = datetime.datetime.now().month, EJERCICIO = datetime.datetime.now().year)
-    totalDisponible = proyeccion.aggregate(total=Sum('IMPORTE'))['total'] or 0
+    proyeccion = ProyeccionGastos.objects.filter(codigo__codigo=codigo, mes = datetime.datetime.now().month, ejercicio = datetime.datetime.now().year)
+    totalDisponible = proyeccion.aggregate(total=Sum('importe'))['total'] or 0
 
     #obtengo el dinero total de las facturas autorizadas del mes
-    facturasAutorizadas = Factura.objects.filter(codigo__CODIGO=codigo, autorizado_fecha__month = ExtractMonth(timezone.now()))
+    facturasAutorizadas = Factura.objects.filter(codigo__codigo=codigo, autorizado_fecha__month = ExtractMonth(timezone.now()))
     totalFacturasAutorizadas = facturasAutorizadas.aggregate(total=Sum('total'))['total'] or 0
 
     totalDisponible = float(round(totalDisponible - totalFacturasAutorizadas  + totalUsado, 2))
@@ -242,10 +287,9 @@ def desautorizarFactura(request):
 def autorizarFactura(request, factura_id):
     factura_selec = Factura.objects.get(pk=factura_id)
     usuario = request.user.username
-    fecha = timezone.now() - timezone.timedelta(hours=3)
-    factura_selec.autorizar(usuario, fecha)
+    factura_selec.autorizar(usuario)
     
-    codigo = factura_selec.codigo.CODIGO
+    codigo = factura_selec.codigo.codigo
     totalDisponible = obtenerDineroDisponible(codigo)
 
     if totalDisponible < factura_selec.total:

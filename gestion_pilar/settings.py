@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-=o_x^5jv1tzc-22-&%mu$2h%$6+n!o8tae8&(pyj!6)lkpafs$
 #DEBUG = True
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','gestionpilar.online','localhost']
+ALLOWED_HOSTS = ['127.0.0.1','3.18.214.236','localhost']
 #ALLOWED_HOSTS = ['gestionpilar.online','localhost']
 
 CSRF_TRUSTED_ORIGINS = [
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'solicitud',
     'servicios_generales',
     'facturas',
+    'seguimiento_expedientes',
 ]
 
 MIDDLEWARE = [

@@ -101,7 +101,7 @@ class codigoFinanciero(models.Model):
     NOMBRE = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
-        NAME = str(self.CODIGO) + " - " + str(self.NOMBRE)
+        NAME = str(self.CODIGO)
         return NAME
     
     class Meta:
