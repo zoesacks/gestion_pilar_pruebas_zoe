@@ -44,14 +44,17 @@ class TipoDocumento(models.Model):
 
 class Transferencia(models.Model):
   
-    #Campos que se autocomplentan
+    #Obligatorios
     fecha = models.DateField(blank=False, null=False)
     emisor = models.ForeignKey(Usuario, on_delete=models.CASCADE, blank=False, null=False, related_name="emisor")
     receptor = models.ForeignKey(Usuario, on_delete=models.CASCADE, blank=False, null=False, related_name="receptor")
     fecha_confirmacion = models.DateField(blank=True, null=True)
 
+    #extra
+    observacion = models.TextField(blank=True, null=True)
+
     def __str__(self):
-        return f'{self.fecha}, {self.emisor}'
+        return f'{self.fecha}. Emisor: {self.emisor}. Receptor: {self.receptor}'
     
     class Meta:
         verbose_name = 'transferencia'
@@ -97,16 +100,57 @@ class Documento(models.Model):
         verbose_name_plural ='Documentos'
 
     def clean(self):
-        super().clean() 
-
-    def save(self, *args, **kwargs):
         if self.existe():
             raise ValidationError("El documento ya esta registrado en el sistema")
-        
-        super(Documento, self).save(*args, **kwargs)
+        super().clean() 
 
-    def existe(instance):
-        return Documento.objects.filter(tipo = instance.tipo, numero = instance.numero, ejercicio = instance.ejercicio).exclude(pk=instance.pk).exists()
+
+    def transferir(self, destinatario, observacion):
+        self.validar_transferencia(destinatario)
+        
+        self.destinatario = destinatario
+        self.observacion = observacion if observacion else None
+        self.en_transito = True
+        self.fecha_transito = timezone.now()
+
+        self.save()
+
+    def confirmarTransferencia(self):
+        self.validar_confirmarTransferencia()
+
+        transferencia = Transferencia.objects.create(
+            fecha=self.fecha_transito,
+            emisor=self.propietario,
+            receptor=self.destinatario,
+            fecha_confirmacion=timezone.now(),
+            observacion=self.observacion if self.observacion else None
+        )
+
+        self.transferencias.add(transferencia)
+        self.propietario = self.destinatario
+        self.destinatario = None
+        self.observacion = None
+        self.en_transito = False
+        self.fecha_transito = None
+
+        self.save()
+
+
+    def validar_transferencia(self, destinatario):
+        if destinatario == self.destinatario:
+            raise ValidationError("No se pueden hacer transferencias a ti mismo")
+        
+        if self.en_transito == True:
+            raise ValidationError("El documento ya se encuentra en transito")
+        
+
+    def validar_confirmarTransferencia(self):
+        if self.en_transito == False:
+            raise ValidationError("El documento no se encuentra en transito")
+
+
+    def existe(self):
+        return Documento.objects.filter(tipo = self.tipo, numero = self.numero, ejercicio = self.ejercicio).exclude(pk=self.pk).exists()
     
 
 

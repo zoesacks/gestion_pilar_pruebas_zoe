@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 
 
 class DocumentoViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = DocumentoSerializer
 
     def get_queryset(self):

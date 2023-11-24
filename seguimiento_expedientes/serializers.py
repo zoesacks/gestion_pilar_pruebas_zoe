@@ -35,6 +35,11 @@ class TransferenciaSerializer(serializers.ModelSerializer):
 
 
 class DocumentoSerializer(serializers.ModelSerializer):
+    tipo = TipoDocumentoSerializer()
+    propietario = UsuarioSerializer()
+    destinatario = UsuarioSerializer()
+    transferencias = TransferenciaSerializer(many=True)
+
     class Meta:
         model =  Documento
         fields = '__all__' 
@@ -47,17 +52,42 @@ class GenerarTransferenciaSerializer(serializers.Serializer):
     observacion = serializers.CharField(required=False)
 
     def create(self, validated_data):
-        # Lógica para procesar y guardar los datos en algún lugar
-        # Puedes realizar operaciones de base de datos o cualquier otra lógica aquí
-        # En este ejemplo, simplemente devolvemos los datos validados
-        return validated_data
+        id_documento = validated_data.get('id_documento')
+        id_usuario = validated_data.get('id_usuario')
+        observacion = validated_data.get('observacion', '')
+
+        try:
+            doc = Documento.objects.get(id = id_documento)
+            destinatario = Usuario.objects.get(id = id_usuario)
+            doc.transferir(destinatario, observacion)
+
+            return {'transferencia_exitosa': True, 'mensaje': 'Transferencia realizada correctamente'}
+        
+        except Documento.DoesNotExist:
+            raise serializers.ValidationError("Documento no encontrado")
+        
+        except Usuario.DoesNotExist:
+            raise serializers.ValidationError("Usuario no encontrado")
+
+        except Exception:
+            raise serializers.ValidationError("No se pudo realizar la transferencia")
 
 
 class ConfirmarTransferenciaSerializer(serializers.Serializer):
     id_documento = serializers.IntegerField()
 
     def create(self, validated_data):
-        # Lógica para procesar y guardar los datos en algún lugar
-        # Puedes realizar operaciones de base de datos o cualquier otra lógica aquí
-        # En este ejemplo, simplemente devolvemos los datos validados
-        return validated_data
+        id_documento = validated_data.get('id_documento')
+
+        try:
+            doc = Documento.objects.get(id = id_documento)
+            doc.confirmarTransferencia()
+
+            return {'transferencia_exitosa': True, 'mensaje': 'Se a confirmado la transferencia correctamente'}
+        
+        except Documento.DoesNotExist:
+            raise serializers.ValidationError("Documento no encontrado")
+
+        except Exception:
+            raise serializers.ValidationError("No se pudo realizar la transferencia")
+
