@@ -528,7 +528,7 @@
 
                                                             {% endfor %}
 
-                                                        {% else%}
+                                                        {% elif factura.estado != 'Pagado' or factura.estado != 'Pagos parciales' or factura.estado != 'OP' %}
 
                                                             <button type="submit" class="btn btn-danger botonFactura" name="factura_desautorizar" value="{{ factura.id }}" style="display: none">
                                                                 <img class="logo" src="{% static 'assets/iconos/autorizar.png' %}" alt="" style="max-height: 30px;">

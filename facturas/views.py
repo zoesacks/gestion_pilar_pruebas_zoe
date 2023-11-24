@@ -300,14 +300,15 @@ def autorizarFactura(request, factura_id):
 
 def guardarCodigoUsado(request, factura_selec, monto_usado):
     global codigoIngresado
-        
-    #agrego los datos de quien uso el codigo
-    codigoU = CodigoUsado()
-    codigoU.codigo = CodigoAprobacion.objects.get(codigo_apro = codigoIngresado) 
-    codigoU.factura = factura_selec
-    codigoU.codigo_financiero = factura_selec.codigo
-    codigoU.monto_usado = monto_usado
-    codigoU.usuario = request.user.username
-    codigoU.fecha = timezone.now() - timezone.timedelta(hours=3)
+    
+    if CodigoAprobacion.objects.filter(codigo_apro = codigoIngresado).exists():
+        #agrego los datos de quien uso el codigo
+        codigoU = CodigoUsado()
+        codigoU.codigo = CodigoAprobacion.objects.get(codigo_apro = codigoIngresado) 
+        codigoU.factura = factura_selec
+        codigoU.codigo_financiero = factura_selec.codigo
+        codigoU.monto_usado = monto_usado
+        codigoU.usuario = request.user.username
+        codigoU.fecha = timezone.now() - timezone.timedelta(hours=3)
 
-    codigoU.save()
+        codigoU.save()

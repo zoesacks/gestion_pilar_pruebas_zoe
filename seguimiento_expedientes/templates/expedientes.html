@@ -28,7 +28,7 @@
                 </div>
                 <div class="modal-body" >
                     <div class="row p-3">
-    <!--                    
+                        
                         <div class="col-12">
                             <div class="row m-1">
                                 <label for="documento" class="form-label"><b class="text-primary">Documento:</b></label>
@@ -66,7 +66,7 @@
                                 <p><b class="text-primary text-uppercase">Ejercicio:&nbsp;&nbsp;</b><span id="ejercicioDocumento"></span></p>
                             </div>
                         </div>
-    -->
+    
     <form method="post" action="{% url 'expedientes' %}">
         {% csrf_token %}
         {{ form.as_p }}
@@ -99,14 +99,29 @@
     </div>
 </form>
 
+<!--Modal ver datos de documento-->
 
+<div class="modal fade" id="verDocumentoModal" tabindex="-1" role="dialog" aria-labelledby="verDocumento" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLongTitle">Detalles del documento</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" id="modal-ver-documento">
+        </div>
+      </div>
+    </div>
+  </div>
 
-
+<!--SECCION DE TARJEtAS-->
 <div class="container mt-4" style="min-height: 70vh;">
     <div class="card">
         <div class="card-body">
             
-            <!--SECCION DE TARJEtAS-->
+            
             <div class="row">
                 <!-- cantidad de documentos pendientes de recepcion-->
                 <div class="col-xl-4 col-md-4 mb-4">

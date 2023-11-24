@@ -33,15 +33,31 @@ class TransferenciaSerializer(serializers.ModelSerializer):
         model = Transferencia
         fields = '__all__' 
 
-class DocumentoSerializer(serializers.ModelSerializer):
-    tipo = TipoDocumentoSerializer() 
-    propietario = UsuarioSerializer()
-    destinatario = UsuarioSerializer()
-    transferencias = TransferenciaSerializer(many=True)
 
+class DocumentoSerializer(serializers.ModelSerializer):
     class Meta:
         model =  Documento
         fields = '__all__' 
-        read_only_fields = ('sector', 'fecha_alta',)
+        read_only_fields = ('sector', 'fecha_alta')
 
 
+class GenerarTransferenciaSerializer(serializers.Serializer):
+    id_documento = serializers.IntegerField(required=True)
+    id_usuario = serializers.IntegerField(required=True)
+    observacion = serializers.CharField(required=False)
+
+    def create(self, validated_data):
+        # Lógica para procesar y guardar los datos en algún lugar
+        # Puedes realizar operaciones de base de datos o cualquier otra lógica aquí
+        # En este ejemplo, simplemente devolvemos los datos validados
+        return validated_data
+
+
+class ConfirmarTransferenciaSerializer(serializers.Serializer):
+    id_documento = serializers.IntegerField()
+
+    def create(self, validated_data):
+        # Lógica para procesar y guardar los datos en algún lugar
+        # Puedes realizar operaciones de base de datos o cualquier otra lógica aquí
+        # En este ejemplo, simplemente devolvemos los datos validados
+        return validated_data
