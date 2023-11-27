@@ -5,7 +5,7 @@ from django.utils import timezone
 
 
 class Sector(models.Model):
-    nombre = models.CharField(max_length = 255, blank=False, null = False, unique=True)
+    nombre = models.CharField(max_length = 255, unique=True)
 
     def __str__(self):
         return f'{self.nombre}'
@@ -19,8 +19,8 @@ class Sector(models.Model):
 
 
 class Usuario(models.Model):
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE, blank=False, null=False)
-    sector = models.ForeignKey(Sector, on_delete=models.CASCADE, blank=False, null=False)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.usuario} - {self.sector}'
@@ -31,8 +31,8 @@ class Usuario(models.Model):
 
 
 class TipoDocumento(models.Model):
-    numero = models.IntegerField(blank=False, null=False, unique=True)
-    descripcion = models.CharField(max_length = 255, blank=False, null = False)
+    numero = models.IntegerField(unique=True)
+    descripcion = models.CharField(max_length = 255)
 
     def __str__(self):
         return f'{self.numero}'
@@ -45,9 +45,9 @@ class TipoDocumento(models.Model):
 class Transferencia(models.Model):
   
     #Obligatorios
-    fecha = models.DateField(blank=False, null=False)
-    emisor = models.ForeignKey(Usuario, on_delete=models.CASCADE, blank=False, null=False, related_name="emisor")
-    receptor = models.ForeignKey(Usuario, on_delete=models.CASCADE, blank=False, null=False, related_name="receptor")
+    fecha = models.DateField(blank=False)
+    emisor = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="emisor")
+    receptor = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="receptor")
     fecha_confirmacion = models.DateField(blank=True, null=True)
 
     #extra
@@ -69,10 +69,10 @@ class Transferencia(models.Model):
 
 class Documento(models.Model):
     #DATOS DEL DOCUMENTO
-    tipo = models.ForeignKey(TipoDocumento, on_delete=models.CASCADE, blank=False, null=False)
-    numero = models.IntegerField(blank=False, null=False)
-    ejercicio = models.CharField(max_length = 4, blank=False, null=False)
-    propietario = models.ForeignKey(Usuario, on_delete=models.CASCADE, blank=False, null=False, related_name="propietario")
+    tipo = models.ForeignKey(TipoDocumento, on_delete=models.CASCADE)
+    numero = models.IntegerField()
+    ejercicio = models.CharField(max_length = 4)
+    propietario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="propietario")
     #se autocompleta
     fecha_alta = models.DateField(auto_now_add=True, blank=True, null=True)
     
