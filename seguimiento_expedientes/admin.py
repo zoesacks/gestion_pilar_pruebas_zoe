@@ -19,7 +19,7 @@ class TipoDocumentoAdmin(ImportExportModelAdmin):
     
 @admin.register(Documento)
 class DocumentoAdmin(ImportExportModelAdmin):
-    list_display = ('tipo', 'numero', 'ejercicio', 'propietario',)
+    list_display = ('tipo', 'numero', 'ejercicio', 'propietario', 'en_transito',)
     readonly_fields = ('fecha_alta', 'en_transito', 'destinatario', 'fecha_transito', 'observacion', 'transferencias')
     
 @admin.register(Transferencia)

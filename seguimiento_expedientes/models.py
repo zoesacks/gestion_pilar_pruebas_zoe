@@ -147,7 +147,8 @@ class Documento(models.Model):
     def validar_confirmarTransferencia(self):
         if self.en_transito == False:
             raise ValidationError("El documento no se encuentra en transito")
-
+        if self.destinatario == False:
+            raise ValidationError("El documento no tiene destinatario")
 
     def existe(self):
         return Documento.objects.filter(tipo = self.tipo, numero = self.numero, ejercicio = self.ejercicio).exclude(pk=self.pk).exists()

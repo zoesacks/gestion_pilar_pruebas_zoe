@@ -46,9 +46,9 @@ class DocumentoSerializer(serializers.ModelSerializer):
         read_only_fields = ('sector', 'fecha_alta')
 
 
-class GenerarTransferenciaSerializer(serializers.Serializer):
+class TransferenciaSerializer(serializers.Serializer):
     id_documento = serializers.IntegerField(required=True)
-    id_usuario = serializers.IntegerField(required=True)
+    id_usuario = serializers.IntegerField(required=False)
     observacion = serializers.CharField(required=False)
 
     def create(self, validated_data):
@@ -56,38 +56,36 @@ class GenerarTransferenciaSerializer(serializers.Serializer):
         id_usuario = validated_data.get('id_usuario')
         observacion = validated_data.get('observacion', '')
 
-        try:
-            doc = Documento.objects.get(id = id_documento)
-            destinatario = Usuario.objects.get(id = id_usuario)
-            doc.transferir(destinatario, observacion)
-
-            return {'transferencia_exitosa': True, 'mensaje': 'Transferencia realizada correctamente'}
         
-        except Documento.DoesNotExist:
-            raise serializers.ValidationError("Documento no encontrado")
+        doc = Documento.objects.get(id = id_documento)
         
-        except Usuario.DoesNotExist:
-            raise serializers.ValidationError("Usuario no encontrado")
+        if(doc.en_transito == False):
+            try:
+                destinatario = Usuario.objects.get(id = id_usuario)
+                doc.transferir(destinatario, observacion)
 
-        except Exception:
-            raise serializers.ValidationError("No se pudo realizar la transferencia")
+                return {'transferencia_exitosa': True, 'mensaje': 'Transferencia realizada correctamente'}
+            
+            except Documento.DoesNotExist:
+                raise serializers.ValidationError("Documento no encontrado")
+            
+            except Usuario.DoesNotExist:
+                raise serializers.ValidationError("Usuario no encontrado")
 
-
-class ConfirmarTransferenciaSerializer(serializers.Serializer):
-    id_documento = serializers.IntegerField()
-
-    def create(self, validated_data):
-        id_documento = validated_data.get('id_documento')
-
-        try:
-            doc = Documento.objects.get(id = id_documento)
-            doc.confirmarTransferencia()
-
-            return {'transferencia_exitosa': True, 'mensaje': 'Se a confirmado la transferencia correctamente'}
+            except Exception:
+                raise serializers.ValidationError("No se pudo realizar la transferencia")
         
-        except Documento.DoesNotExist:
-            raise serializers.ValidationError("Documento no encontrado")
+        else:
+            try:
+                doc = Documento.objects.get(id = id_documento)
+                doc.confirmarTransferencia()
 
-        except Exception:
-            raise serializers.ValidationError("No se pudo realizar la transferencia")
+                return {'transferencia_exitosa': True, 'mensaje': 'Se a confirmado la transferencia correctamente'}
+            
+            except Documento.DoesNotExist:
+                raise serializers.ValidationError("Documento no encontrado")
+
+            except Exception:
+                raise serializers.ValidationError("No se pudo realizar la transferencia")
+
 

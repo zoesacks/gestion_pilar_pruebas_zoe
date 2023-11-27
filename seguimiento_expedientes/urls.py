@@ -1,6 +1,6 @@
 from django.urls import path, include, re_path
 from rest_framework import routers
-from .views import expedientes, GenerarTransferenciaView, ConfirmarTransferenciaView
+from .views import expedientes, TransferenciaView
 from .api import DocumentoViewSet, UsuarioLogueadoViewSet, UsuariosViewSet
 
 from rest_framework import routers, permissions
@@ -32,8 +32,7 @@ router.register('usuarios', UsuariosViewSet, 'usuarios')
 
 urlpatterns = [
     path('', expedientes, name='expedientes'),
-    path('api/generarTransferencia/', GenerarTransferenciaView.as_view(), name='generarTransferencia'),
-    path('api/confirmarTransferencia/', ConfirmarTransferenciaView.as_view(), name='confirmarTransferencia'),
+    path('api/transferencia/', TransferenciaView.as_view(), name='generarTransferencia'),
     path('api/', include(router.urls)),  
 
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
