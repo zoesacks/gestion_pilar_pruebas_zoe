@@ -48,15 +48,14 @@ class DocumentoSerializer(serializers.ModelSerializer):
 
 class TransferenciaSerializer(serializers.Serializer):
     id_documento = serializers.IntegerField(required=True)
-    id_usuario = serializers.IntegerField(required=False)
-    observacion = serializers.CharField(required=False)
+    id_usuario = serializers.IntegerField(required=False, allow_null=True)
+    observacion = serializers.CharField(required=False, allow_blank=True)
 
     def create(self, validated_data):
         id_documento = validated_data.get('id_documento')
         id_usuario = validated_data.get('id_usuario')
         observacion = validated_data.get('observacion', '')
 
-        
         doc = Documento.objects.get(id = id_documento)
         
         if(doc.en_transito == False):

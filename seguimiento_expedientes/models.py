@@ -137,9 +137,8 @@ class Documento(models.Model):
 
 
     def validar_transferencia(self, destinatario):
-        if destinatario == self.destinatario:
+        if destinatario == self.propietario:
             raise ValidationError("No se pueden hacer transferencias a ti mismo")
-        
         if self.en_transito == True:
             raise ValidationError("El documento ya se encuentra en transito")
         
