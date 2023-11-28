@@ -21,6 +21,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://www.gestionpilar.online",
     "https://gestionpilar.online",
     "http://localhost",
+    'http://127.0.0.1',
 ]
 # Application definition
 
