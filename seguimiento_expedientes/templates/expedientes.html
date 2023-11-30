@@ -1,6 +1,8 @@
 {% extends 'index.html' %}
 {% load static %}
-
+{% block title %}
+<a href="/" style="color: aliceblue;">INICIO</a> > <a href="/contaduria/aplicaciones/" style="color: aliceblue;">CONTADURIA</a> > <a href="/expedientes" style="color: aliceblue;">EXPEDIENTES</a>
+{% endblock %}
 {% block content %}
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -16,7 +18,7 @@
 <!--MODALES-->
 
 
-<div class="modal fade" data-backdrop="static" id="transferirDocumentoModal" tabindex="-1" role="dialog"
+<div class="modal fade" data-backdrop="static" id="transferirDocumentoModal"  tabindex="-1" role="dialog"
     aria-labelledby="transferirDocumentoModal" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
@@ -29,50 +31,52 @@
                     <span aria-hidden="true"></span>
                 </button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body max-height">
                 <form class="enviar-transferencia-formulario" method="post">
                     {% csrf_token %}
                     <div class="row p-3">
-                        <div class="col-12">
+                        <div class="col-6">
+                            <!-- Columna izquierda con campos del formulario -->
                             <div class="row m-1">
                                 <label for="documento" class="form-label"><b class="texto-documento-form text-primary">Documento:</b></label>
                                 <select id="seleccionar-documento" name="documento" class="form-select" required>
                                     <option value="" selected disabled>Selecciona un documento</option>
                                 </select>
-                                
                             </div>
-
+            
                             <div class="row m-1 mt-3">
                                 <label for="usuario" class="form-label"><b class="text-primary">Enviar a:</b></label>
                                 <select id="seleccionar-usuario" name="usuario" class="form-select" required>
                                     <option value="" selected disabled>Selecciona una persona</option>
                                 </select>
                             </div>
-
-                            <div class="row  m-1 mt-3">
-                                <label for="observacion" class="form-label"><b
-                                        class="text-primary">Observacion:</b></label>
+            
+                            <div class="row m-1 mt-3">
+                                <label for="observacion" class="form-label"><b class="text-primary">Observacion:</b></label>
                                 <textarea id="observacion" name="observacion" class="form-control"></textarea>
                             </div>
-
                         </div>
-
+            
                         <div class="col-6">
+                            <!-- Columna derecha con datos de tipo, número y ejercicio -->
                             <div id="formulario-detalle-documento" class="row m-1 mt-2">
-                                <p><b class="text-primary text-uppercase">Tipo:&nbsp;&nbsp;</b><span
-                                        id="tipoDocumento"></span></p>
-                                <p><b class="text-primary text-uppercase">Numero:&nbsp;&nbsp;</b><span
-                                        id="numeroDocumento"></span></p>
-                                <p><b class="text-primary text-uppercase">Ejercicio:&nbsp;&nbsp;</b><span
-                                        id="ejercicioDocumento"></span></p>
+                                <p><b class="text-primary text-uppercase">Tipo:&nbsp;&nbsp;</b><span id="tipoDocumento"></span></p>
+                                <p><b class="text-primary text-uppercase">Numero:&nbsp;&nbsp;</b><span id="numeroDocumento"></span></p>
+                                <p><b class="text-primary text-uppercase">Ejercicio:&nbsp;&nbsp;</b><span id="ejercicioDocumento"></span></p>
+                                <p><b class="text-primary text-uppercase">Transferencias:&nbsp;&nbsp;</b><span id="transferenciasDocumento">
+                                    <ul class="lista-transferencias list-group max-height overflow-auto border-0"  style="height: 20vh;"></ul>
+                                </span></p>
                             </div>
                         </div>
-                        <button type="submit" id="boton-enviar-transferencia" class="btn btn-primary btn-lg ">
-                            Crear transferencia
-                        </button>
+            
+                        <!-- Botón al final de las columnas -->
+                        <div class="col-12 mt-3 text-center">
+                            <button type="submit" id="boton-enviar-transferencia" class="btn btn-primary btn-lg close" data-dismiss="modal" aria-label="Cerrar" data-toggle="modal" data-target="#confirmacionModal" disabled>
+                                Crear transferencia
+                            </button>
+                        </div>
                     </div>
-                
-                </form>    
+                </form>
             </div>
             <div class="modal-footer">
                 <!--<button typ
@@ -82,17 +86,17 @@
     </div>
 </div>
 
+<!--Confimar transferencia modal-->
 
-
-    <div class="modal fade" id="confirmacionModal" tabindex="-1" role="dialog" aria-labelledby="confirmacionModal" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+    <div class="modal fade " id="confirmacionModal" tabindex="-1" role="dialog" aria-labelledby="confirmacionModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm"  role="document">
             <div class="modal-content">
                 <div class="modal-body text-center">
                     <h5 class="modal-title" id="exampleModalLabel">¿Está seguro de que desea hacer la transferencia?</h5>
                 </div>
                 <div class="modal-footer d-flex justify-content-center">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="crearTransferencia" name="crearTransferencia">Confirmar</button>
+                    <button type="submit" class="btn btn-primary confirmar-transferencia-boton" id="crearTransferencia"  data-dismiss="modal" aria-label="Cerrar" data-toggle="modal" data-target="#confirmacionModal" name="crearTransferencia">Confirmar</button>
                 </div>
             </div>
         </div>
@@ -184,7 +188,7 @@
 
             <!--SECCION DE TABLA-->
 
-            <div class="section">
+            <div class="section justify-content-center text-center">
 
                 <div class="row p-3">
                     <div class="col-6">
@@ -198,12 +202,11 @@
                     </div>
 
                     <div class="col-6">
-                        <div>
-                            <button type="button" class="btn btn-outline-success btn-lg w-100 " data-toggle="modal"
-                                data-target="#filtroAvanzadoModal">
-                                Filtros
-
-                            </button>
+                        <div class="h-100">
+                            <form class="d-flex h-100">
+                                <input class="form-control me-2 form-busqueda" type="search" placeholder="Buscar documento" aria-label="Search">
+                                
+                              </form>
                         </div>
                     </div>
                 </div>

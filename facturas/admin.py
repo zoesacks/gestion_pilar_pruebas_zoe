@@ -10,8 +10,8 @@ from django.db.models.functions import ExtractMonth
 from django.utils import timezone
 
 
-admin.site.site_header = "Gestion Pilar"
-admin.site.site_title = "Gestion Pilar"
+admin.site.site_header = "Regresar a la App"
+admin.site.site_title = "Regresar a la App"
 
 
 #controlo como se importa/exporta

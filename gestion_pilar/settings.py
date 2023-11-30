@@ -14,14 +14,13 @@ SECRET_KEY = 'django-insecure-=o_x^5jv1tzc-22-&%mu$2h%$6+n!o8tae8&(pyj!6)lkpafs$
 #DEBUG = True
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','3.18.214.236','localhost']
+ALLOWED_HOSTS = ['127.0.0.1','3.16.155.0','localhost']
 #ALLOWED_HOSTS = ['gestionpilar.online','localhost']
 
 CSRF_TRUSTED_ORIGINS = [
     "https://www.gestionpilar.online",
     "https://gestionpilar.online",
     "http://localhost",
-    'http://127.0.0.1',
 ]
 # Application definition
 
@@ -36,8 +35,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'import_export',
-    'rest_framework',
-    'drf_yasg',
     'tesoreria',
     'ingresos',
     'contaduria',
@@ -46,9 +43,8 @@ INSTALLED_APPS = [
     'servicios_generales',
     'facturas',
     'seguimiento_expedientes',
+    'recursos_humanos',
 ]
-
-
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
