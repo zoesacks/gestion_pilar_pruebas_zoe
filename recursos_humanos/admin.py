@@ -1,8 +1,9 @@
 from django.contrib import admin
-from django.db.models import Sum
+
+
 from import_export.admin import ImportExportModelAdmin
 from .models import DatosPersonales, Legajo, Domicilio, Estudio, Familiar, Licencia, UsoLicencia
-from .models import Cargo, Categoria, Escolariodad, EstodoCivil, Localidad, Nacionalidad, Oficina, Particion, Provincia, Relacion, TipoLicencia, TipoEstudio, TipoDeDocumento
+from .models import Cargo, Categoria, Escolariodad, EstodoCivil, Localidad, Nacionalidad, Oficina, Particion, Provincia, Relacion, TipoLicencia, TipoEstudio, TipoDeDocumento, Feriado
 
 # Register your models here.
 
@@ -28,10 +29,13 @@ class LicenciaInline(admin.StackedInline):
     model = Licencia
     extra = 0
 
+class UsoLicenciaInline(admin.StackedInline):
+    model = UsoLicencia
+    extra = 0
 
 @admin.register(Legajo)
 class LegajoAdmin(ImportExportModelAdmin):
-    list_display = ('id', )
+    list_display = ('num_legajo', 'nombre', 'oficina' )
     inlines = [
         DatosPersonalesInline,
         DomicilioInline,
@@ -39,6 +43,9 @@ class LegajoAdmin(ImportExportModelAdmin):
         FamiliarInline,
         EstudioInline,
     ]
+
+    def nombre(self, obj):
+        return DatosPersonales.objects.get(legajo = obj)
 
 @admin.register(DatosPersonales)
 class DatosPersonalesAdmin(ImportExportModelAdmin):
@@ -58,10 +65,13 @@ class FamiliarAdmin(ImportExportModelAdmin):
 
 @admin.register(Licencia)
 class LicenciaAdmin(ImportExportModelAdmin):
-    list_display = ('legajo', 'dias', 'tipo_licencia', 'dias_habiles', 'Dias_pendientes',)
+    list_display = ('legajo', 'dias', 'tipo_licencia', 'dias_habiles', 'dias_pendientes',)
+    inlines = [
+        UsoLicenciaInline,
+    ]
+
     
-    def Dias_pendientes(self, obj):
-        return UsoLicencia.objects.filter(licencia=obj).aggregate(Sum('fecha_fin' - 'fecha_inicio'))['fecha_fin__sum']
+
     
 @admin.register(UsoLicencia)
 class UsoLicenciaAdmin(ImportExportModelAdmin):
@@ -120,3 +130,8 @@ class TipoEstudioAdmin(ImportExportModelAdmin):
 @admin.register(TipoDeDocumento)
 class TipoDeDocumentoAdmin(ImportExportModelAdmin):
     list_display = ('numero', 'descripcion',)
+
+
+@admin.register(Feriado)
+class FechaAdmin(ImportExportModelAdmin):
+    list_display = ('fecha', 'descripcion',)

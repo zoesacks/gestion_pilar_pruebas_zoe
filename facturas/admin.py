@@ -164,6 +164,8 @@ class PestamoAdmin(ImportExportModelAdmin):
                                 obj.save()
                         
                         else:
+                                print("s" + str(totalDisponibleCodSalida))
+                                print(totalDisponibleCodEntrada)
                                 raise ValidationError("El codigo no tiene dinero suficiente")
                 
                 else:

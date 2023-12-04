@@ -39,7 +39,7 @@
                     <!-- formulario -->
         
                     <div class="row mb-2">
-                        <div class="col-6">
+                        <div class="col-4">
                             <label for="verFacturas"><b class="text-primary">Ver facturas:</b></label>
                             <select id="verFacturas" name="verFacturas" class="form-control">
                                 <option value="pendientes">Pendientes</option>
@@ -52,7 +52,18 @@
                             </select>
                         </div>
 
-                        <div class="col-6">
+                        
+                        <div class="col-4">
+                            <label for="verCodigo"><b class="text-primary">Ver codigo:</b></label>
+                            <select id="verCodigo" name="verCodigo" class="form-control">
+                                {% for codigo in codigos%}
+                                    <option value="{{codigo.id}}">{{codigo.codigo}}</option>
+                                {% endfor %}
+                                <option value="todos" selected>Todos</option>
+                            </select>
+                        </div>
+
+                        <div class="col-4">
         
                             <!--FILTRO FECHA-->
                             <div class="row">
@@ -430,6 +441,7 @@
                 </div>
 
 
+
                 <!-- Seccion de tabla-->
                 <div class="section"> 
 
@@ -458,6 +470,12 @@
                                 </button>
                         </div>
                     </div>
+
+
+                    <div class="row p-3">
+                        <canvas id="graficoBarras" class="w-100 h-100"></canvas>
+                    </div>
+
                 
                     <div class="row">
                         <div class="col-12 p-2">
@@ -577,6 +595,7 @@
     </div>
 </form>
 <br>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 
     // Función para configurar los campos de fecha con los valores del primer y último día del mes actual
@@ -589,7 +608,7 @@
     }
 
     function limitarProveedoresSeleccionados() {
-        const maxProveedoresSeleccionados = 20;
+        const maxProveedoresSeleccionados = 5;
         const maxCaracteresProveedor = 15;
         const proveedoresSeleccionados = document.getElementById('proveedores_seleccionados').getElementsByTagName('li');
 
@@ -614,7 +633,7 @@
     }
 
     function limitarfacturasSeleccionados() {
-        const maxfacturasSeleccionadas = 20;
+        const maxfacturasSeleccionadas = 5;
         const maxCaracteresfactura = 15;
         const facturasSeleccionadas = document.getElementById('facturas_seleccionadas').getElementsByTagName('li');
 
@@ -662,8 +681,6 @@
             unidadesSeleccionadas[maxUnidadesSeleccionadas - 1].parentNode.appendChild(masElement);
         } 
     }
-
-
 
 
     function toggleAutorizarButton() {
@@ -1061,6 +1078,49 @@
     });
 
   
+
+    var datos =  JSON.parse('{{ facturasJson | safe }}');
+
+    // Ahora puedes trabajar con 'facturasObj' en tu script
+   
+
+    var proveedores = Object.keys(datos);
+    var estados = Object.keys(datos[proveedores[0]]);
+
+    // Prepara los datos para Chart.js
+    var datasets = estados.map(function (estado) {
+      return {
+        label: estado,
+        data: proveedores.map(function (proveedor) {
+          return datos[proveedor][estado];
+        
+        }),
+      };
+    });
+
+    // Configura el gráfico de barras
+    var ctx = document.getElementById('graficoBarras').getContext('2d');
+    var myChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: proveedores,
+        datasets: datasets
+      },
+      options: {
+        scales: {
+          x: {
+            stacked: true,
+            display: true
+          },
+          y: {
+            stacked: true
+          }
+        }
+      }
+    });
+
+    // Función para generar colores aleatorios
+
 
 </script>
 {% endblock %}

@@ -100,3 +100,10 @@ class Localidad(models.Model):
     def __str__(self):
         return str(self.descripcion)
     
+
+class Feriado(models.Model):
+    descripcion = models.CharField(max_length=255)
+    fecha = models.DateField()
+
+    def __str__(self):
+        return str(self.descripcion)

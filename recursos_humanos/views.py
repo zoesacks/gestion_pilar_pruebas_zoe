@@ -1,48 +1,40 @@
 from django.shortcuts import render
+import json
 from django.views import View
-
 from .models import Legajo, DatosPersonales
+from django.conf import settings
+
 
 def construir_estructura_organigrama(legajos):
-    # Crear un diccionario para mapear IDs de empleados a sus datos
+    legajos_dict = []
 
-    legajos_dict = {legajo.id: 
-                    {"id": legajo.id, 
-                     "puesto": legajo.cargo.descripcion, 
-                     "nombre": DatosPersonales.objects.get(legajo=legajo).nombre, 
-                     "hijos": []} 
-                     for legajo in legajos}
+    for legaj in legajos:
+        legajo = {
+            "id": legaj.id,
+            "pid": legaj.superior_inmediato_id,
+            "Nombre": DatosPersonales.objects.get(legajo=legaj).apellido + ", " + DatosPersonales.objects.get(legajo=legaj).nombre,
+            "Puesto": legaj.cargo.descripcion,
+            "img": DatosPersonales.objects.get(legajo=legaj).foto.name
+        }
+        print(legajo)
+        legajos_dict.append(legajo)
 
-    # Encontrar el empleado raíz (sin jefe)
-    data = None
-    for legajo in legajos:
-        if not legajo.superior_inmediato:
-            data = legajos_dict[legajo.id]
+    return legajos_dict
 
-    # Organizar empleados bajo su jefe correspondiente
-    for legajo in legajos:
-        if legajo.superior_inmediato:
-            jefe_id = legajo.superior_inmediato.id
-            legajos_dict[jefe_id]["hijos"].append(legajos_dict[legajo.id])
-    
-    return data
-
-
-# Luego, en tu vista, puedes utilizar esta función para obtener los datos
 class OrganigramaView(View):
     template_name = 'organigrama_template.html'
 
     def get_context_data(self, **kwargs):
         legajos = Legajo.objects.all()
         data = construir_estructura_organigrama(legajos)
-
+        data = json.dumps(data)
         context = {
+            'MEDIA_URL': settings.MEDIA_URL,
             'data': data,
         }
+
         
         return context
-    
-        
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data()

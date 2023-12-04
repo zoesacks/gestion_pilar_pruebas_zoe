@@ -11,16 +11,6 @@ from administracion.gestion_pases import ingresos_required,calculadora_tasas_req
 def sin_acceso_view(request):
     return render(request, 'sin_acceso.html', { })
 
-@login_required(login_url='/login/')
-def about(request):
-
-    titulo =  "Automatizacion de Procesos y Mejora Continua"
-
-    context = {
-               'titulo': titulo,
-               }
-    return render(request, 'about.html', context) 
-
 def logout_view(request):
     logout(request)
     return redirect('login') 

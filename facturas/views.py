@@ -1,6 +1,6 @@
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
-from .models import Factura, CodigoUsado, CodigoAprobacion, OrdenDePago, ProyeccionGastos
+from .models import Factura, CodigoUsado, CodigoAprobacion, OrdenDePago, ProyeccionGastos, CodigoFinanciero
 from .admin import FacturaExportResource
 from django.utils import timezone
 from datetime import datetime
@@ -11,6 +11,8 @@ from administracion.gestion_pases import contaduria_required
 import json
 from django.http import HttpResponse
 from import_export.resources import modelresource_factory
+from django.core.serializers import serialize
+from django.http import JsonResponse
 
 
 meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
@@ -22,6 +24,7 @@ proveedores_seleccionados = []
 facturas_seleccionadas = []
 unidades_seleccionadas = []
 verFacturas = None
+verCodigo = None
 
 @contaduria_required
 def detalleFactura(request, factura_detalle_id):
@@ -62,6 +65,7 @@ def facturas(request):
     proveedores = Factura.objects.filter(codigo__codigo__in=grupos_usuario).values_list('proveedor', flat=True).distinct().order_by('proveedor')
     nroFacturas = Factura.objects.filter(codigo__codigo__in=grupos_usuario).values_list('nro_factura', flat=True).distinct()
     unidadesEjecutoras = Factura.objects.filter(codigo__codigo__in=grupos_usuario).values_list('unidad_ejecutora', flat=True).distinct()
+    codigos = CodigoFinanciero.objects.filter(codigo__in=grupos_usuario).distinct()
         
     cantidad_facturas_pendientes = len(facturas) or 0
     dineroTotalDeFacturas = round(sum(factura.total for factura in facturas), 2)
@@ -119,6 +123,9 @@ def facturas(request):
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
         
+    facturasJson = proveedoresTotalFacturas(request)
+
+    
     
     context = {
         'page' : page,
@@ -132,6 +139,8 @@ def facturas(request):
         'total' : total,
         'dineroTotalDeFacturas' : dineroTotalDeFacturas,
         'unidadesEjecutoras': unidadesEjecutoras,
+        'codigos': codigos,
+        'facturasJson': facturasJson,
     }
 
     return render(request, 'facturas.html', context)
@@ -153,7 +162,7 @@ def exportar_facturas(request):
 
 
 def obtenerParametrosParaFiltros(request):
-    global fecha_desde, fecha_hasta, proveedores_seleccionados, facturas_seleccionadas, unidades_seleccionadas, verFacturas
+    global fecha_desde, fecha_hasta, proveedores_seleccionados, facturas_seleccionadas, unidades_seleccionadas, verFacturas, verCodigo
 
     # Obtener los parámetros de los filtros (si están presentes)
     fecha_desde = request.GET.get('fecha_desde')
@@ -162,6 +171,7 @@ def obtenerParametrosParaFiltros(request):
     facturas_seleccionadas = request.GET.getlist('nroFactura')
     unidades_seleccionadas = request.GET.getlist('unidadEjecutora')
     verFacturas = request.GET.get('verFacturas')
+    verCodigo = request.GET.get('verCodigo')
 
 
 def filtrar(request):
@@ -174,7 +184,7 @@ def filtrar(request):
     facturas = facturas.filter(codigo__codigo__in=grupos_usuario)
     facturas = [factura for factura in facturas if factura.estado == "Devengado" and factura.autorizado == False]
 
-    global fecha_desde, fecha_hasta, proveedores_seleccionados, facturas_seleccionadas, unidades_seleccionadas, verFacturas
+    global fecha_desde, fecha_hasta, proveedores_seleccionados, facturas_seleccionadas, unidades_seleccionadas, verFacturas, verCodigo
 
     if verFacturas:
         facturas = Factura.objects.all()
@@ -204,6 +214,9 @@ def filtrar(request):
             facts = [factura.id  for factura in facturas if factura.estado == "Pagada"]
             facturas = facturas.filter(id__in = facts)
 
+    if verCodigo:
+        if verCodigo != "todos":
+            facturas = facturas.filter(codigo__id__in=verCodigo)
 
     # Aplicar los filtros si están presentes
     if fecha_desde and fecha_hasta:
@@ -312,3 +325,75 @@ def guardarCodigoUsado(request, factura_selec, monto_usado):
         codigoU.fecha = timezone.now() - timezone.timedelta(hours=3)
 
         codigoU.save()
+
+
+def proveedoresTotalFacturas(request):
+    grupos_usuario = request.user.groups.values_list('name', flat=True)
+    facturas = Factura.objects.filter(codigo__codigo__in=grupos_usuario)
+
+    proveedores = proveedores_seleccionados or Factura.objects.filter(codigo__codigo__in=grupos_usuario).values_list('proveedor', flat=True).distinct().order_by('proveedor')
+    
+    facturas = Factura.objects.filter(proveedor__in=proveedores)
+
+    #datos = agruparPorProveedor(facturas)
+    datos = agruparPorEstado(facturas)
+
+    json_resultado = json.dumps(datos)
+
+    return json_resultado
+
+def agruparPorProveedor(facturas):
+    datos = {}
+
+    # Itera sobre las facturas y agrupa por proveedor y estado
+    for fact in facturas:
+        proveedor = fact.proveedor  # Ajusta esto según la estructura de tu modelo
+        estado = fact.estado
+        total = float(fact.total)
+        
+        if estado == 'Devengado' and fact.autorizado == True:
+            estado = 'Autorizado'
+        # Crea una entrada para el proveedor si aún no existe
+        if proveedor not in datos:
+            datos[proveedor] = {
+                'Pagada': 0,
+                'Pagos parciales': 0,
+                'OP': 0,
+                'Devengado': 0,
+                'Autorizado': 0,
+            }
+        
+        # Suma el total al proveedor y estado correspondiente
+        if estado in datos[proveedor]:
+            datos[proveedor][estado] += total
+
+    return datos
+
+
+def agruparPorEstado(facturas):
+        # Inicializa el diccionario de datos
+    datos = {}
+
+    # Itera sobre las facturas y agrupa por proveedor y estado
+    for fact in facturas:
+        proveedor = fact.proveedor  # Ajusta esto según la estructura de tu modelo
+        estado = fact.estado
+        total = float(fact.total)
+        
+        if estado == 'Devengado' and fact.autorizado == True:
+            estado = 'Autorizado'
+        
+        # Crea una entrada para el estado si aún no existe
+        if estado not in datos:
+            datos[estado] = {
+                proveedor: 0
+            }
+        
+        # Crea una entrada para el proveedor si aún no existe
+        if proveedor not in datos[estado]:
+            datos[estado][proveedor] = 0
+        
+        # Suma el total al estado y proveedor correspondientes
+        datos[estado][proveedor] += total
+
+    return datos
