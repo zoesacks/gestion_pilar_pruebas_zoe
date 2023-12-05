@@ -7,7 +7,7 @@ from .models import *
 class SolicitudDeAyudaAdmin(ImportExportModelAdmin):
     list_display = ('id', 'usuario', 'titulo', 'fecha', 'estado')
     list_filter = ('usuario', 'estado')
-    readonly_fields = ('comentarios', 'fotos')
+    readonly_fields = ('comentarios',)
     
     
     actions = ['comenzarSolicitudDeAyuda', 'terminarSolicitudDeAyuda']
