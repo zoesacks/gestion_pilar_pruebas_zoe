@@ -60,8 +60,7 @@ class SolicitudDeAyudaView(APIView):
         instancias = SolicitudDeAyuda.objects.filter(usuario=request.user)
         serializador = SolicitudDeAyudaSerializer(instancias, many=True)
         datos_serializados = serializador.data
-        context = {'solicitudesDeAyuda': datos_serializados}
-        return render(request, 'mesaDeAyuda.html', context)
+        return Response(datos_serializados)
     
     def post(self, request):
         datos_solicitud = request.data
