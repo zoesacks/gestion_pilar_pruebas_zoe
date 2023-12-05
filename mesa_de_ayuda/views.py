@@ -23,6 +23,14 @@ def agregarComentario(solicitud, comentario, usuario):
     nuevo_comentario.save()
     solicitud.comentarios.add(nuevo_comentario)
 
+
+def mesaDeAyuda(request):
+    
+    context = {
+    }
+
+    return render(request, 'mesaDeAyuda.html', context)
+
 class NuevaFotoView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication]
     permission_classes = [IsAuthenticated]
