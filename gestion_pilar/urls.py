@@ -19,6 +19,7 @@ urlpatterns = [
     path('tesoreria/', include('tesoreria.urls')),
     path('expedientes/', include('seguimiento_expedientes.urls')),
     path('recursos_humanos/', include('recursos_humanos.urls')),
+    path('mesa-de-ayuda/', include('mesa_de_ayuda.urls')),
 ] 
 
 

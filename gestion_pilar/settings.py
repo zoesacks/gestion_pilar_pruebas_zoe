@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'facturas',
     'seguimiento_expedientes',
     'recursos_humanos',
+    'mesa_de_ayuda',
 ]
 
 MIDDLEWARE = [
@@ -123,7 +124,7 @@ STATIC_URL = 'static/'
 STATIC_ROOT = '/home/ubuntu/aplicaciones/gestion_pilar/static/'
 
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'recursos_humanos', 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'recursos_humanos', 'media', 'mesa_de_ayuda')
 MEDIA_URL = '/media/'
 
 
