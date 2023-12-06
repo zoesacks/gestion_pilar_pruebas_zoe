@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .models import SolicitudDeAyuda, FotoSolicutudDeAyuda, ComentarioSolicutudDeAyuda
+from django.contrib.auth.models import User
 from .serializers import SolicitudDeAyudaSerializer
 from django.shortcuts import get_object_or_404
 
@@ -22,6 +23,14 @@ def agregarComentario(solicitud, comentario, usuario):
     nuevo_comentario = ComentarioSolicutudDeAyuda(comentario=comentario, usuario=usuario)
     nuevo_comentario.save()
     solicitud.comentarios.add(nuevo_comentario)
+
+
+def mesaDeAyuda(request):
+    
+    context = {
+    }
+
+    return render(request, 'mesaDeAyuda.html', context)
 
 class NuevaFotoView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication]
@@ -52,14 +61,16 @@ class SolicitudDeAyudaView(APIView):
         instancias = SolicitudDeAyuda.objects.filter(usuario=request.user)
         serializador = SolicitudDeAyudaSerializer(instancias, many=True)
         datos_serializados = serializador.data
-        context = {'solicitudesDeAyuda': datos_serializados}
-        return render(request, 'mesaDeAyuda.html', context)
+        return Response(datos_serializados)
     
     def post(self, request):
-        datos_solicitud = request.data
-        datos_solicitud['usuario'] = request.user.id
+        usuario_id = request.user.id
+        datos_solicitud = {'usuario': usuario_id, **request.data}
+
         serializador = SolicitudDeAyudaSerializer(data=datos_solicitud)
+        
         if serializador.is_valid():
             serializador.save()
             return Response(serializador.data, status=status.HTTP_201_CREATED)
+        print(serializador.errors)
         return Response(serializador.errors, status=status.HTTP_400_BAD_REQUEST)

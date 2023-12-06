@@ -1,7 +1,10 @@
 {% extends 'index.html' %}
+
 {% load static %}
+
 {% block title %}
-<a href="/" style="color: aliceblue;">INICIO</a> > <a href="/contaduria/aplicaciones/" style="color: aliceblue;">CONTADURIA</a> > <a href="/expedientes" style="color: aliceblue;">EXPEDIENTES</a>
+<a href="/" style="color: aliceblue;">INICIO</a> > <a href="/contaduria/aplicaciones/"
+    style="color: aliceblue;">CONTADURIA</a> > <a href="/expedientes" style="color: aliceblue;">EXPEDIENTES</a>
 {% endblock %}
 {% block content %}
 
@@ -13,7 +16,348 @@
     integrity="sha512-..." crossorigin="anonymous" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.2/css/fontawesome.min.css"
     integrity="sha384-BY+fdrpOd3gfeRvTSMT+VUZmA728cfF9Z2G42xpaRkUGu2i3DyzpTURDo5A6CaLK" crossorigin="anonymous">
-<script src="{% static 'script.js' %}"></script>
+<link rel="stylesheet" href="{% static 'mesa-de-ayuda.css' %}">
+<script src="{% static 'mesaDeAyuda.js' %}" defer></script>
+
+<!--Modal ver datos del ticket-->
+
+<div class="modal fade " id="verTicketModal" tabindex="-1" role="dialog" aria-labelledby="verTicket"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Detalles del documento</h5>
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"></span>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-ver-documento">
+                <section>
+                    <div class="container py-5">
+                  
+                      <div class="row d-flex justify-content-center">
+                        <div class="col-md-8 col-lg-6 col-xl-4">
+                  
+                          <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center p-3"
+                              style="border-top: 4px solid #ffa900;">
+                              <h5 class="mb-0">Mensajes</h5>
+                         
+                            </div>
+                            <div class="card-body" data-mdb-perfect-scrollbar="true" style="position: relative; height: 400px">
+                  
+                              <div class="d-flex justify-content-between">
+                                <p class="small mb-1">Timona Siera</p>
+                                <p class="small mb-1 text-muted">23 Jan 2:00 pm</p>
+                              </div>
+                              <div class="d-flex flex-row justify-content-start">
+                                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava5-bg.webp"
+                                  alt="avatar 1" style="width: 45px; height: 100%;">
+                                <div>
+                                  <p class="small p-2 ms-3 mb-3 rounded-3" style="background-color: #f5f6f7;">For what reason
+                                    would it
+                                    be advisable for me to think about business content?</p>
+                                </div>
+                              </div>
+                  
+                              <div class="d-flex justify-content-between">
+                                <p class="small mb-1 text-muted">23 Jan 2:05 pm</p>
+                                <p class="small mb-1">Johny Bullock</p>
+                              </div>
+                              <div class="d-flex flex-row justify-content-end mb-4 pt-1">
+                                <div>
+                                  <p class="small p-2 me-3 mb-3 text-white rounded-3 bg-warning">Thank you for your believe in
+                                    our
+                                    supports</p>
+                                </div>
+                                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava6-bg.webp"
+                                  alt="avatar 1" style="width: 45px; height: 100%;">
+                              </div>
+                  
+                              <div class="d-flex justify-content-between">
+                                <p class="small mb-1">Timona Siera</p>
+                                <p class="small mb-1 text-muted">23 Jan 5:37 pm</p>
+                              </div>
+                              <div class="d-flex flex-row justify-content-start">
+                                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava5-bg.webp"
+                                  alt="avatar 1" style="width: 45px; height: 100%;">
+                                <div>
+                                  <p class="small p-2 ms-3 mb-3 rounded-3" style="background-color: #f5f6f7;">Lorem ipsum dolor
+                                    sit amet
+                                    consectetur adipisicing elit similique quae consequatur</p>
+                                </div>
+                              </div>
+                  
+                              <div class="d-flex justify-content-between">
+                                <p class="small mb-1 text-muted">23 Jan 6:10 pm</p>
+                                <p class="small mb-1">Johny Bullock</p>
+                              </div>
+                              <div class="d-flex flex-row justify-content-end mb-4 pt-1">
+                                <div>
+                                  <p class="small p-2 me-3 mb-3 text-white rounded-3 bg-warning">Dolorum quasi voluptates quas
+                                    amet in
+                                    repellendus perspiciatis fugiat</p>
+                                </div>
+                                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava6-bg.webp"
+                                  alt="avatar 1" style="width: 45px; height: 100%;">
+                              </div>
+                  
+                            </div>
+                            <div class="card-footer text-muted d-flex justify-content-start align-items-center p-3">
+                              <div class="input-group mb-0">
+                                <input type="text" class="form-control" placeholder="Type message"
+                                  aria-label="Recipient's username" aria-describedby="button-addon2" />
+                                <button class="btn btn-warning" type="button" id="button-addon2" style="padding-top: .55rem;">
+                                  Button
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                  
+                        </div>
+                      </div>
+                  
+                    </div>
+                  </section>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Agregar ticket modal-->
+
+
+<div class="modal fade" data-backdrop="static" id="nuevoTicketModal"  tabindex="-1" role="dialog"
+    aria-labellnuevo" aria-hidden="true">
+    <div class="modal-dialog modal-l" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 style="color: #5454E6;" id="agregarTicket">
+                    <img class="logo img" src="{% static 'assets/logo.png' %}" alt="" style="height: 50px;width: 50px;">
+                    &nbsp;&nbsp; Agregar ticket
+                </h5>
+                <button type="button" class="btn-close boton-cerrar-transferencia" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true"></span>
+                </button>
+            </div>
+            <div class="modal-body max-height">
+                <form class="enviar-ticket-formulario">
+                    {% csrf_token %}
+                    <div class="row p-3">
+                        <div class="col-12">
+                            <!-- Columna izquierda con campos del formulario -->
+                            <div class="row m-1">
+                                <label for="documento" class="form-label"><b class="texto-documento-form text-primary">Asunto:</b></label>
+                                <input type="text" class="form-control input-asunto" placeholder="Asunto" aria-label="Asunto">
+
+                            </div>
+            
+                            <div class="row m-1 mt-3">
+                                <label for="usuario" class="form-label"><b class="text-primary">Descripcion:</b></label>
+                                <textarea class="form-control textarea-descripcion" aria-label="With textarea"></textarea>
+                            </div>
+
+
+                        </div>
+
+            
+                        <button type="submit" id="boton-enviar-ticket" class="btn btn-primary btn-lg close" data-toggle="modal">Enviar</button>
+            
+                        <!-- Botón al final de las columnas 
+                        <div class="col-12 mt-3 text-center">
+                            <button type="submit"  data-dismiss="modal" aria-label="Cerrar" >
+                               Enviar ticket
+                            </button>
+                        </div>-->
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <!--<button typ
+                    e="submit" id="boton-enviar-transferencia" class="btn btn-primary btn-lg btn-block close" data-dismiss="modal" aria-label="Cerrar" data-toggle="modal" data-target="#confirmacionModal">Crear transferencia</button>-->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Cards-->
+<div class="container mt-4" style="min-height: 70vh;">
+    <div class="card">
+        <div class="card-body">
+
+            <div class="row">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card shadow h-100 py-2"
+                        style="background-color: rgba(1, 37, 242, 0.729);border-left: 4px solid rgba(1, 10, 185, 0.9);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xl font-weight-bold text-primary text-uppercase mb-1">
+                                        <b style="color: aliceblue;">TOTAL TICKETS</b>
+                                    </div>
+                                    <div class="h4 mb-0 font-weight-bold" id='solicitudes-totales' style="color: #ffffff;"></div>
+                                </div>
+                                <div class="col-auto">
+                                    <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt=""
+                                        style="height: 60px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card shadow h-100 py-2"
+                        style="background-color: rgba(244, 6, 6, 0.2);border-left: 4px solid rgba(253, 0, 0, 0.9);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xl font-weight-bold text-danger text-uppercase mb-1">
+                                        <b>PENDIENTES</b>
+                                    </div>
+                                    <div class="h4 mb-0 font-weight-bold text-gray-800" id='sol-pendientes' style="color: #f20707;"></div><!---->
+                                </div>
+                                <div class="col-auto">
+                                    <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt=""
+                                        style="height: 60px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card shadow h-100 py-2"
+                        style="background-color: rgba(245, 186, 57, 0.5);border-left: 4px solid rgba(237, 146, 0, 0.9);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xl font-weight-boldtext-uppercase mb-1"
+                                        style="color: rgb(252, 117, 0);">
+                                        <b>EN PROCESO</b>
+                                    </div>
+                                    <div class="h4 mb-0 font-weight-bold text-gray-800" id='proceso'  style="color: #e96100;"></div><!--{{ solicitudes_en_proceso }}-->
+                                </div>
+                                <div class="col-auto">
+                                    <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt=""
+                                        style="height: 60px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card shadow h-100 py-2"
+                        style="background-color: rgba(36, 169, 36, 0.5);border-left: 4px solid rgba(36, 169, 36, 0.9);">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xl font-weight-boldtext-uppercase mb-1"
+                                        style="color: rgb(36, 169, 36);">
+                                        <b>FINALIZADAS</b>
+                                    </div>
+                                    <div class="h4 mb-0 font-weight-bold text-gray-800" id='sol_finalizadas'
+                                        style="color: rgb(36, 169, 36);"></div>
+                                    <!--{{ solicitudes_finalizadas }}-->
+                                </div>
+                                <div class="col-auto">
+                                    <img class="logo" src="{% static 'assets/iconos/logo-heart.png' %}" alt=""
+                                        style="height: 60px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--Tabla-->
+
+
+            <div class="row p-3">
+                <div class="col-6">
+                    <div id="nuevoTicket">
+                        <button type="button" id="nuevoTicketBoton"
+                            class="btn btn-outline-success btn-lg w-100" data-toggle="modal"
+                            data-target="#nuevoTicketModal">
+                            Nuevo ticket
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="h-100">
+                        <form class="d-flex h-100">
+                            <input class="form-control me-2 form-busqueda" type="search" placeholder="Buscar ticket" aria-label="Search">
+                            
+                          </form>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="table-responsive" style="border-radius: 2px;">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"
+                            style="border-radius: 15px;border-color: #5454E6;">
+                            <thead>
+                                <tr style="background-color: #5454E6;color: aliceblue;text-align: center;">
+                                    <!--<th class="text-center" style="width: 120px;">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <button type="button" class="btn btn-success btn-sm" data-toggle="modal"
+                                                data-target=""
+                                                style="align-items: center;width: 120px;border-radius: 15px;">
+                                                <div style="padding: 2px;">
+                                                    <b>AGREGAR</b>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </th>-->
+                                    <th>Fecha</th>
+                                    <th>Solicitante</th>
+                                    <th>Asunto</th>
+                                    <th>Asignado a</th>
+                                    <th>Estado</th>
+                                    <th>Ultimo comentario</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                             <tbody>
+                             <!--   {% for solicitud in solicitudes  %}
+                                <tr >
+                                    {% if solicitud.ESTADO == False %}
+                                    <td>
+                                        🟠En espera
+                                    </td> 
+                                    {% else %}
+                                    <td>
+                                        🟢En proceso
+                                    </td>
+                                    {% endif %}
+                                    <td>📅{{ solicitud.FECHA }}</td>
+                                    <td>{{ solicitud.USUARIO  }}</td>
+                                    <td style="min-width: 300px;">{{ solicitud.TITULO }}</td>
+                                    <td class="text-center">
+                                        {% if solicitud.ESTADO == False %}
+                                        <form method="post" action="{% url 'solicitudes' %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="solicitud_id" value="{{ solicitud.id }}">
+                                            <button type="submit" class="btn btn-success">
+                                                <p>Completar</p>
+                                                <img class="logo" src="{% static 'assets/iconos/completar.png' %}" alt="" style="max-height: 30px;">
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>   
+                                {% endfor %}-->
+                            </tbody>
+                            
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 {% endblock %}
