@@ -4,8 +4,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
+<<<<<<< HEAD
 from .models import SolicitudDeAyuda, FotoSolicutudDeAyuda, ComentarioSolicutudDeAyuda
 from django.contrib.auth.models import User
+=======
+from .models import SolicitudDeAyuda, ComentarioSolicutudDeAyuda
+>>>>>>> 1bf5648b9044416ef9b554405d6dee9aef70e38b
 from .serializers import SolicitudDeAyudaSerializer
 from django.shortcuts import get_object_or_404
 
@@ -14,16 +18,17 @@ def obtener_solicitud_o_404(pk):
     queryset = SolicitudDeAyuda.objects.all()
     return get_object_or_404(queryset, pk=pk)
 
-def agregarfoto(solicitud, imagen):
-    nueva_foto = FotoSolicutudDeAyuda(imagen=imagen)
-    nueva_foto.save()
-    solicitud.fotos.add(nueva_foto)
+def agregarfoto(solicitud, imagen, usuario):
+    nuevo_comentario = ComentarioSolicutudDeAyuda(imagen=imagen, usuario=usuario)
+    nuevo_comentario.save()
+    solicitud.comentarios.add(nuevo_comentario)
 
 def agregarComentario(solicitud, comentario, usuario):
     nuevo_comentario = ComentarioSolicutudDeAyuda(comentario=comentario, usuario=usuario)
     nuevo_comentario.save()
     solicitud.comentarios.add(nuevo_comentario)
 
+<<<<<<< HEAD
 
 def mesaDeAyuda(request):
     
@@ -35,12 +40,17 @@ def mesaDeAyuda(request):
 class NuevaFotoView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication]
     permission_classes = [IsAuthenticated]
+=======
+>>>>>>> 1bf5648b9044416ef9b554405d6dee9aef70e38b
 
-    def put(self, request, pk):
-        solicitud = obtener_solicitud_o_404(pk)
-        imagen = request.data.get('imagen', None)
-        agregarfoto(solicitud, imagen)
-        return Response(status=status.HTTP_201_CREATED)
+def mesaDeAyuda(request):
+    
+    context = {
+    }
+
+    return render(request, 'mesaDeAyuda.html', context)
+
+
 
 class NuevoComentarioView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication]
@@ -49,7 +59,14 @@ class NuevoComentarioView(APIView):
     def put(self, request, pk):
         solicitud = obtener_solicitud_o_404(pk)
         comentario = request.data.get('comentario', None)
-        agregarComentario(solicitud, comentario, request.user)
+        imagen = request.data.get('imagen', None)
+
+        if comentario:
+            agregarComentario(solicitud, comentario, request.user)
+
+        if imagen:
+            agregarfoto(solicitud, imagen, request.user)
+
         return Response(status=status.HTTP_201_CREATED)
     
 

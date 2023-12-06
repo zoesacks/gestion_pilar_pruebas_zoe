@@ -8,20 +8,17 @@ ESTADO = [
     ("Terminado","Terminado")
 ]
 
-class FotoSolicutudDeAyuda(models.Model):
-    foto = models.ImageField(
-        upload_to='img/', 
-        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif'])],)
-    
-    class Meta:
-        verbose_name = 'Foto de solicitud a mesa de ayuda'
-        verbose_name_plural ='Fotos de solicitudes a mesa de ayuda' 
 
 
 class ComentarioSolicutudDeAyuda(models.Model):
-    comentario = models.TextField()
+    comentario = models.TextField(null=True, blank=True)
     fecha = models.DateTimeField(auto_now_add=True)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    foto = models.ImageField(
+        upload_to='img/', 
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif'])],
+        null=True, blank=True)
+    
 
     class Meta:
         verbose_name = 'Comentario de solicitud a mesa de ayuda'
@@ -39,7 +36,6 @@ class SolicitudDeAyuda(models.Model):
     desarrollador = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="desarrollador")
     estado = models.CharField(max_length=255, choices=ESTADO, default=('Pendiente'))
 
-    fotos = models.ManyToManyField(FotoSolicutudDeAyuda)
     comentarios = models.ManyToManyField(ComentarioSolicutudDeAyuda)
 
     def __str__(self):
