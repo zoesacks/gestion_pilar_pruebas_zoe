@@ -61,6 +61,12 @@ class SolicitudDeAyudaView(APIView):
         datos_serializados = serializador.data
         return Response(datos_serializados)
     
+    def get(self, request, pk):
+        solicitud = get_object_or_404(SolicitudDeAyuda, id=pk, usuario=request.user)
+        serializador = SolicitudDeAyudaSerializer(solicitud)
+        datos_serializados = serializador.data
+        return Response(datos_serializados)
+    
     def post(self, request):
         datos_solicitud = request.data
         datos_solicitud['usuario'] = request.user.id

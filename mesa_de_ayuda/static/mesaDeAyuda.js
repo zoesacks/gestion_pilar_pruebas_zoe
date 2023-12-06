@@ -147,5 +147,12 @@ function agregarTicket(data) {
             console.error('There was a problem with the fetch operation:', error);
         });
         
-        
 }
+
+async function obtenerTicket(id) {
+    const response = await fetch(`http://127.0.0.1:8000/mesa-de-ayuda/api/${id}/`)
+    ticket = await response.json()
+    console.log(ticket)
+}
+
+obtenerTicket(1)

@@ -20,6 +20,7 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('', mesaDeAyuda, name='mesaDeAyuda'),
     path('api/', SolicitudDeAyudaView.as_view(), name='solicitudDeAyuda'),
+    path('api/<int:solicitud_id>/', SolicitudDeAyudaView.as_view(), name='solicitud-detalle'),
     path('api/<int:pk>/nuevo-comentario/', NuevoComentarioView.as_view(), name='nuevo-comentario'),
 
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
